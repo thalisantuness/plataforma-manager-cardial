@@ -1,0 +1,883 @@
+/* styles.css - Versão Simplificada */
+
+/* Container principal com sidebar */
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  width: calc(100% - 250px);
+}
+
+.user-admin-container {
+  padding: 0;
+  background-color: transparent;
+  min-height: auto;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-left: 4px solid #3182ce;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.user-admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  font-size: 2rem;
+  color: #3182ce;
+}
+
+.header-title h1 {
+  color: #2d3748;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.add-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #3182ce;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.add-user-btn:hover {
+  background: #2b6cb0;
+}
+
+/* Controles e Estatísticas */
+.users-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+}
+
+.users-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  min-width: 100px;
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3182ce;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  color: #718096;
+  font-size: 0.8rem;
+}
+
+/* Lista de Usuários */
+.users-list-container {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.not-found-message {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #718096;
+}
+
+.not-found-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.not-found-message h3 {
+  color: #2d3748;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.not-found-message p {
+  font-size: 1rem;
+}
+
+/* Tabela de Usuários */
+.users-table {
+  width: 100%;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr 120px;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.9rem;
+}
+
+.table-body {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr 120px;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+
+.table-row:hover {
+  background: #f7fafc;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-col {
+  display: flex;
+  align-items: center;
+}
+
+/* Coluna Usuário */
+.user {
+  gap: 1rem;
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #f7fafc;
+}
+
+.tipo-icon {
+  font-size: 1.5rem;
+}
+
+.tipo-icon.admin { color: #e53e3e; }
+.tipo-icon.empresa { color: #d69e2e; }
+.tipo-icon.vendedor { color: #3182ce; }
+.tipo-icon.caixa { color: #38a169; }
+.tipo-icon.cliente { color: #805ad5; }
+.tipo-icon.user { color: #718096; }
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.25rem;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+/* Coluna Contato */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #4a5568;
+}
+
+.contact-icon {
+  font-size: 0.7rem;
+  color: #718096;
+}
+
+/* Coluna Tipo */
+.type-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  display: block;
+}
+
+.type-badge.admin {
+  background: #fed7d7;
+  color: #c53030;
+}
+
+.type-badge.empresa {
+  background: #fefcbf;
+  color: #d69e2e;
+}
+
+.type-badge.vendedor {
+  background: #bee3f8;
+  color: #3182ce;
+}
+
+.type-badge.caixa {
+  background: #c6f6d5;
+  color: #276749;
+}
+
+.type-badge.cliente {
+  background: #e9d8fd;
+  color: #6b46c1;
+}
+
+.type-badge.user {
+  background: #edf2f7;
+  color: #4a5568;
+}
+
+/* Coluna Datas */
+.date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.date-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #4a5568;
+}
+
+.date-icon {
+  font-size: 0.7rem;
+  color: #718096;
+}
+
+.date-item span {
+  color: black;
+}
+
+/* Coluna Ações */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.edit-btn {
+  background: #bee3f8;
+  color: #3182ce;
+}
+
+.edit-btn:hover {
+  background: #90cdf4;
+}
+
+.delete-btn {
+  background: #fed7d7;
+  color: #e53e3e;
+}
+
+.delete-btn:hover {
+  background: #feb2b2;
+}
+
+/* Botão de Atualizar */
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #38a169;
+  color: white;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.refresh-btn:hover {
+  background: #2f855a;
+}
+
+.refresh-btn:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+  color: #2d3748;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: #718096;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f7fafc;
+  color: #4a5568;
+}
+
+.modal-form {
+  padding: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: white;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+  background: #f7fafc;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.form-help {
+  display: block;
+  margin-top: 0.5rem;
+  color: #718096;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e2e8f0;
+  background: white;
+  color: #4a5568;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: #3182ce;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #2b6cb0;
+}
+
+.btn-submit:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* Ajuste no botão Adicionar Usuário */
+.add-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #3182ce;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.add-user-btn:hover {
+  background: #2b6cb0;
+}
+
+/* Responsividade do Modal */
+@media (max-width: 768px) {
+  .modal-content {
+    margin: 20px;
+    max-width: none;
+  }
+  
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+  
+  .modal-form {
+    padding: 1.5rem;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+  }
+}
+
+
+/* Adicione estas regras ao seu styles.css */
+
+/* Modal de Confirmação de Exclusão */
+.delete-confirmation-modal {
+  max-width: 500px;
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.delete-warning {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #fff5f5;
+  border-radius: 8px;
+  border-left: 4px solid #e53e3e;
+}
+
+.warning-icon {
+  font-size: 1.5rem;
+  color: #e53e3e;
+}
+
+.delete-warning h3 {
+  color: #2d3748;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.user-to-delete {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f7fafc;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-details .user-name {
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.25rem;
+}
+
+.user-details .user-email {
+  color: #718096;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.user-details .user-type {
+  font-size: 0.8rem;
+  color: #4a5568;
+}
+
+.delete-warning-text {
+  text-align: center;
+  color: #718096;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Botão de Excluir no Modal */
+.btn-delete {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: #e53e3e;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-delete:hover:not(:disabled) {
+  background: #c53030;
+}
+
+.btn-delete:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* Botões de Ação na Tabela */
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.edit-btn {
+  background: #bee3f8;
+  color: #3182ce;
+}
+
+.edit-btn:hover {
+  background: #90cdf4;
+}
+
+.delete-btn {
+  background: #fed7d7;
+  color: #e53e3e;
+}
+
+.delete-btn:hover {
+  background: #feb2b2;
+}
+
+/* Botão de Submit no Modal */
+.btn-submit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+
+/* Responsividade para os modais */
+@media (max-width: 768px) {
+  .user-to-delete {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .delete-warning {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+/* Responsividade */
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 2fr 1.5fr 1fr 1.2fr 100px;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .user-admin-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .users-controls {
+    justify-content: center;
+  }
+  
+  .table-header {
+    display: none;
+  }
+  
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  .table-col {
+    justify-content: space-between;
+    border-bottom: 1px solid #f7fafc;
+    padding: 0.5rem 0;
+  }
+  
+  .table-col::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.9rem;
+  }
+  
+  .table-col.user::before { content: "Usuário"; }
+  .table-col.contact::before { content: "Contato"; }
+  .table-col.type::before { content: "Tipo"; }
+  .table-col.dates::before { content: "Datas"; }
+  .table-col.actions::before { content: "Ações"; }
+  
+  .user {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .contact-info,
+  .date-info {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title h1 {
+    font-size: 1.5rem;
+  }
+  
+  .add-user-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .users-stats {
+    flex-direction: column;
+  }
+}
+
+/* --- Adicionar ao styles.css --- */
+
+/* Estilo para a imagem de avatar na listagem e no modal de exclusão */
+.user-avatar .avatar-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover; /* Garante que a imagem cubra o espaço sem distorcer */
+  border: 2px solid #ddd;
+}
+
+/* Estilo para o preview da imagem no modal de edição/cadastro */
+.form-group-preview {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.form-group-preview label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+  text-align: left;
+}
+
+.form-group-preview .avatar-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #eee;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Ajuste no input de arquivo para melhor aparência */
+.modal-form .form-group input[type="file"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fafafa;
+}

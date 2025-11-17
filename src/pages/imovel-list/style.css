@@ -1,0 +1,13 @@
+/* ========================================
+   PÁGINA DE PRODUTOS - LAYOUT COM SIDEBAR
+   ======================================== */
+
+/* Garante que o product-admin-container não causa overflow */
+.product-admin-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
