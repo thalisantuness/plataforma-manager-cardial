@@ -1,11 +1,9 @@
 import React from "react";
 import "./styles.css";
-import Roll from "react-reveal/Roll";
 
 function Statistics() {
   return (
     <>
-        <Roll right>
     <div className="statistics-container">
           <div className="statistics-right">
         <h1>Esteja Com Quem Entende</h1>
@@ -53,10 +51,9 @@ function Statistics() {
     
       
    
-
   
+
     </div>
-    </Roll>
     </>
   );
 }

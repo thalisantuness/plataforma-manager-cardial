@@ -3,13 +3,11 @@ import Check from "../../assets/building.png";
 import Xadrez from "../../assets/house.png"
 import Regua from "../../assets/commerce-room.png"
 import Couple from "../../assets/couple.png"
-import Roll from "react-reveal/Roll";
 import "./styles.css";
 
 function OurSolutions() {
   return (
     <> 
-        <Roll left>
         <div className="second-section">   
          
           <div className="left-section">
@@ -43,10 +41,6 @@ function OurSolutions() {
             </div>
           
           </div>
-
-
-    
-        </Roll>
     </>
   );
 }
