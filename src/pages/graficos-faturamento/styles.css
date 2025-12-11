@@ -1,0 +1,368 @@
+/* ========================================
+   PÁGINA DE GRÁFICOS DE FATURAMENTO
+   ======================================== */
+
+/* ==================== CONTAINER PRINCIPAL ==================== */
+.graficos-container {
+  padding: 2.5rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #f0f3f7 100%);
+  min-height: calc(100vh - 100px);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==================== HEADER ==================== */
+.graficos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.header-title h1 {
+  color: #1a202c;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-title p {
+  color: #718096;
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.refresh-btn {
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.refresh-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+/* ==================== CARDS DE RESUMO ==================== */
+.resumo-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.resumo-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.resumo-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.resumo-card-blue {
+  border-left: 4px solid #667eea;
+}
+
+.resumo-card-green {
+  border-left: 4px solid #48bb78;
+}
+
+.resumo-card-yellow {
+  border-left: 4px solid #ed8936;
+}
+
+.resumo-card-purple {
+  border-left: 4px solid #9f7aea;
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resumo-card-blue .card-icon {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #667eea;
+}
+
+.resumo-card-green .card-icon {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  color: #48bb78;
+}
+
+.resumo-card-yellow .card-icon {
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  color: #ed8936;
+}
+
+.resumo-card-purple .card-icon {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  color: #9f7aea;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-label {
+  font-size: 0.875rem;
+  color: #718096;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.card-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin: 0;
+}
+
+.resumo-card-blue .card-value {
+  color: #667eea;
+}
+
+.resumo-card-green .card-value {
+  color: #48bb78;
+}
+
+.resumo-card-yellow .card-value {
+  color: #ed8936;
+}
+
+.resumo-card-purple .card-value {
+  color: #9f7aea;
+}
+
+/* ==================== CARDS DE GRÁFICOS ==================== */
+.grafico-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  margin-bottom: 2rem;
+}
+
+.grafico-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.grafico-header h2 {
+  color: #1a202c;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.grafico-header h2 svg {
+  color: #667eea;
+}
+
+/* ==================== GRID DE GRÁFICOS PIZZA ==================== */
+.graficos-pizza-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* ==================== TOOLTIP CUSTOMIZADO ==================== */
+.custom-tooltip {
+  background: white;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-label {
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.custom-tooltip p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: #4a5568;
+}
+
+/* ==================== TABELA DE RESUMO ==================== */
+.tabela-resumo {
+  overflow-x: auto;
+}
+
+.tabela-resumo table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.tabela-resumo thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.tabela-resumo th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabela-resumo tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.2s ease;
+}
+
+.tabela-resumo tbody tr:hover {
+  background: #f7fafc;
+}
+
+.tabela-resumo td {
+  padding: 1rem;
+  color: #4a5568;
+  font-size: 0.875rem;
+}
+
+.tabela-resumo tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* ==================== ESTADOS DE CARREGAMENTO ==================== */
+.loading-container,
+.error-container,
+.no-data-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.loading-container p,
+.error-container p,
+.no-data-container p {
+  font-size: 1.125rem;
+  color: #718096;
+  margin-bottom: 1rem;
+}
+
+.error-container {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  padding: 2rem;
+  color: #991b1b;
+}
+
+.error-container p {
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.retry-btn {
+  padding: 0.75rem 1.5rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+
+.retry-btn:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* ==================== RESPONSIVIDADE ==================== */
+@media (max-width: 768px) {
+  .graficos-container {
+    padding: 1.5rem;
+  }
+
+  .graficos-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-title h1 {
+    font-size: 2rem;
+  }
+
+  .resumo-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .graficos-pizza-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grafico-card {
+    padding: 1.5rem;
+  }
+
+  .tabela-resumo {
+    font-size: 0.75rem;
+  }
+
+  .tabela-resumo th,
+  .tabela-resumo td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+

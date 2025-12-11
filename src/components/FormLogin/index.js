@@ -3,6 +3,8 @@ import axios from "axios";
 import "./styles.css";
 import { ToastContainer, toast } from 'react-toastify';
 import { usePlataforma } from "../../context/PlataformaContext";
+import { Link } from 'react-router-dom';
+import { API_ENDPOINTS } from "../../config/api";
 
 export default function FormLogin() {
   const [formData, setFormData] = useState({
@@ -22,7 +24,7 @@ export default function FormLogin() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "https://back-pdv-production.up.railway.app/login",
+        API_ENDPOINTS.LOGIN,
         formData,
         { headers: { "Content-Type": "application/json" } }
       ); 
@@ -113,6 +115,12 @@ export default function FormLogin() {
               "Entrar"
             )}
           </button>
+
+          <div className="login-footer">
+            <p className="login-link-text">
+              Não tem uma conta? <Link to="/registrar-empresa" className="login-link">Criar conta empresa</Link>
+            </p>
+          </div>
         </form>
       </div>
     </div>

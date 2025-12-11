@@ -4,8 +4,8 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import { FaTrash, FaPlus, FaSpinner, FaCheck, FaTimes, FaSave, FaArrowLeft } from 'react-icons/fa';
 import SideBar from '../../components/SideBar';
-import Footer from '../../components/Footer';
 import { usePlataforma } from '../../context/PlataformaContext';
+import { API_ENDPOINTS } from '../../config/api';
 import './styles.css';
 
 function EditImovel() {
@@ -20,7 +20,7 @@ function EditImovel() {
     quantidade: '',
     tipo_comercializacao: 'Venda',
     tipo_produto: 'Eletrônico',
-    menu: '',
+    menu: 'ambos', // Sempre será 'ambos'
     empresas_autorizadas: [],
     foto_principal: ''
   });
@@ -31,16 +31,66 @@ function EditImovel() {
   const [updating, setUpdating] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [deletingPhoto, setDeletingPhoto] = useState(null);
-  const [empresas, setEmpresas] = useState([]);
-  const [loadingEmpresas, setLoadingEmpresas] = useState(false);
-  const fileInputRef = useRef(null);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const secondaryPhotosInputRef = useRef(null);
 
   // URL da API
-  const API_URL = "https://back-pdv-production.up.railway.app/produtos";
-  const USUARIOS_API_URL = "https://back-pdv-production.up.railway.app/usuarios";
+  const API_URL = API_ENDPOINTS.PROJETOS;
 
-  // Carrega dados do produto e empresas
+  // Carrega categorias únicas dos projetos existentes
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const response = await axios.get(API_URL, {
+          headers: getAuthHeaders()
+        });
+        
+        // Extrai categorias únicas dos projetos
+        const projetos = response.data || [];
+        const categoriasUnicas = [...new Set(projetos.map(p => p.tipo_produto).filter(Boolean))];
+        
+        // Converte para formato de opções do select
+        const categoriasFormatadas = categoriasUnicas.map((nome, index) => ({
+          categoria_id: index + 1,
+          nome: nome
+        }));
+        
+        // Adiciona categorias padrão se não existirem
+        const categoriasPadrao = ['Eletrônico', 'Móvel', 'Roupa', 'Alimento', 'Bebida', 'Outro'];
+        categoriasPadrao.forEach(cat => {
+          if (!categoriasUnicas.includes(cat)) {
+            categoriasFormatadas.push({
+              categoria_id: categoriasFormatadas.length + 1,
+              nome: cat
+            });
+          }
+        });
+        
+        setCategories(categoriasFormatadas);
+      } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+        // Se der erro, usa categorias padrão como fallback
+        setCategories([
+          { categoria_id: 1, nome: 'Eletrônico' },
+          { categoria_id: 2, nome: 'Móvel' },
+          { categoria_id: 3, nome: 'Roupa' },
+          { categoria_id: 4, nome: 'Alimento' },
+          { categoria_id: 5, nome: 'Bebida' },
+          { categoria_id: 6, nome: 'Outro' }
+        ]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Carrega dados do produto
   useEffect(() => {
     if (!isAuthenticated()) {
       toast.error('Usuário não autenticado!');
@@ -49,25 +99,8 @@ function EditImovel() {
     }
 
     fetchProductData();
-    carregarEmpresas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isAuthenticated, navigate]);
-
-  const carregarEmpresas = async () => {
-    try {
-      setLoadingEmpresas(true);
-      const response = await axios.get(USUARIOS_API_URL, {
-        headers: getAuthHeaders()
-      });
-      
-      const empresasFiltradas = response.data.filter(usuario => usuario.role === "empresa");
-      setEmpresas(empresasFiltradas);
-    } catch (error) {
-      console.error("Erro ao carregar empresas:", error);
-      toast.error("Erro ao carregar lista de empresas!");
-    } finally {
-      setLoadingEmpresas(false);
-    }
-  };
 
   const fetchProductData = async () => {
     try {
@@ -86,9 +119,10 @@ function EditImovel() {
         quantidade: produto.quantidade || '',
         tipo_comercializacao: produto.tipo_comercializacao || 'Venda',
         tipo_produto: produto.tipo_produto || 'Eletrônico',
-        menu: produto.menu || '',
+        menu: produto.menu || 'ambos',
         empresas_autorizadas: produto.empresas_autorizadas || [],
-        foto_principal: produto.foto_principal || ''
+        // Usa foto_principal ou, se vier via imageData, usa imageData
+        foto_principal: produto.foto_principal || produto.imageData || ''
       });
 
       // Carrega fotos secundárias
@@ -113,21 +147,46 @@ function EditImovel() {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleCreateCategory = () => {
+    if (!newCategoryName || newCategoryName.trim() === '') {
+      toast.error('O nome da categoria é obrigatório!');
+      return;
+    }
+
+    const categoriaNome = newCategoryName.trim();
+    
+    // Verifica se a categoria já existe
+    const categoriaExiste = categories.some(cat => cat.nome.toLowerCase() === categoriaNome.toLowerCase());
+    
+    if (categoriaExiste) {
+      toast.warning('Esta categoria já existe!');
+      // Seleciona a categoria existente
+      const categoriaExistente = categories.find(cat => cat.nome.toLowerCase() === categoriaNome.toLowerCase());
+      setFormData({ ...formData, tipo_produto: categoriaExistente.nome });
+    } else {
+      // Adiciona a nova categoria à lista local
+      const newCategory = {
+        categoria_id: categories.length + 1,
+        nome: categoriaNome
+      };
+      setCategories([...categories, newCategory]);
+      
+      // Seleciona automaticamente a nova categoria
+      setFormData({ ...formData, tipo_produto: newCategory.nome });
+      
+      toast.success('Categoria adicionada! Ela será salva quando você atualizar o produto.');
+    }
+    
+    // Fecha o modal e limpa o campo
+    setShowCategoryModal(false);
+    setNewCategoryName('');
+  };
+
   const handleNumberChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value === '' ? '' : Number(value) });
   };
 
-  const handleEmpresasChange = (e) => {
-    const options = e.target.options;
-    const selected = [];
-    for (let i = 0; i < options.length; i++) {
-      if (options[i].selected) {
-        selected.push(Number(options[i].value));
-      }
-    }
-    setFormData({ ...formData, empresas_autorizadas: selected });
-  };
 
   const handleMainImageUpload = (e) => {
     const file = e.target.files[0];
@@ -169,10 +228,15 @@ function EditImovel() {
         quantidade: Number(formData.quantidade),
         tipo_comercializacao: formData.tipo_comercializacao,
         tipo_produto: formData.tipo_produto,
-        menu: formData.menu || null,
+        menu: 'ambos', // Sempre será 'ambos'
         empresas_autorizadas: formData.empresas_autorizadas.length > 0 ? formData.empresas_autorizadas : null,
-        foto_principal: formData.foto_principal || ""
+        foto_principal: formData.foto_principal || undefined
       };
+
+      // Se a foto principal não foi alterada (string vazia/undefined), remove o campo
+      if (!formData.foto_principal) {
+        delete payload.foto_principal;
+      }
 
       await axios.put(`${API_URL}/${id}`, payload, {
         headers: getAuthHeaders()
@@ -182,6 +246,11 @@ function EditImovel() {
         position: 'top-right',
         autoClose: 3000,
       });
+      
+      // Navegar para a listagem de projetos após atualização
+      setTimeout(() => {
+        navigate('/projetos');
+      }, 1000); // Aguarda 1 segundo para o usuário ver a mensagem de sucesso
       
     } catch (error) {
       console.error('Erro ao atualizar produto:', error);
@@ -231,8 +300,12 @@ function EditImovel() {
   const removeSecondaryPhoto = async (photoId) => {
     setDeletingPhoto(photoId);
     try {
-      // Nota: Você precisará implementar um endpoint para deletar fotos secundárias
-      // Por enquanto, vamos apenas remover da lista local
+      // Chamar a API para deletar a foto no backend
+      await axios.delete(`${API_URL}/${id}/fotos/${photoId}`, {
+        headers: getAuthHeaders()
+      });
+      
+      // Remover da lista local apenas após sucesso na API
       setPhotos(photos.filter(photo => photo.photo_id !== photoId));
       
       toast.success('Foto removida com sucesso!', {
@@ -241,16 +314,18 @@ function EditImovel() {
       });
     } catch (error) {
       console.error('Erro ao remover foto:', error);
-      toast.error('Erro ao remover foto!', {
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erro ao remover foto!';
+      toast.error(errorMessage, {
         position: 'top-right',
         autoClose: 3000,
       });
+    } finally {
+      setDeletingPhoto(null);
     }
-    setDeletingPhoto(null);
   };
 
   const handleBack = () => {
-    navigate('/produtos');
+    navigate('/projetos');
   };
 
   if (loading) {
@@ -262,7 +337,6 @@ function EditImovel() {
             <FaSpinner className="spinner" /> Carregando dados do produto...
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -302,20 +376,37 @@ function EditImovel() {
                 
                 <div className="form-group">
                   <label>Categoria *</label>
-                  <select
-                    name="tipo_produto"
-                    value={formData.tipo_produto}
-                    onChange={handleChange}
-                    required
-                    disabled={updating}
-                  >
-                    <option value="Eletrônico">Eletrônico</option>
-                    <option value="Móvel">Móvel</option>
-                    <option value="Roupa">Roupa</option>
-                    <option value="Alimento">Alimento</option>
-                    <option value="Bebida">Bebida</option>
-                    <option value="Outro">Outro</option>
-                  </select>
+                  <div className="category-select-container">
+                    <select
+                      name="tipo_produto"
+                      value={formData.tipo_produto}
+                      onChange={handleChange}
+                      required
+                      disabled={updating || loadingCategories}
+                      className="category-select"
+                    >
+                      <option value="">Selecione uma categoria</option>
+                      {categories.map((category) => (
+                        <option key={category.categoria_id} value={category.nome}>
+                          {category.nome}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setShowCategoryModal(true)}
+                      className="add-category-btn"
+                      disabled={updating || loadingCategories}
+                      title="Criar nova categoria"
+                    >
+                      <FaPlus />
+                    </button>
+                  </div>
+                  {loadingCategories && (
+                    <small style={{ color: '#718096', fontSize: '0.875rem', display: 'block', marginTop: '0.25rem' }}>
+                      Carregando categorias...
+                    </small>
+                  )}
                 </div>
               </div>
             </div>
@@ -380,57 +471,8 @@ function EditImovel() {
                     <option value="Venda">Venda</option>
                     <option value="Aluguel">Aluguel</option>
                     <option value="Serviço">Serviço</option>
+                    <option value="Dropshipping">Dropshipping</option>
                   </select>
-                </div>
-              </div>
-            </div>
-            
-            {/* Seção de menu */}
-            <div className="form-section">
-              <h3>Canal de Vendas e Autorizações</h3>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Disponível em</label>
-                  <select
-                    name="menu"
-                    value={formData.menu}
-                    onChange={handleChange}
-                    disabled={updating}
-                  >
-                    <option value="">Selecione um canal (opcional)</option>
-                    <option value="ecommerce">E-commerce</option>
-                    <option value="varejo">Varejo</option>
-                    <option value="ambos">Ambos</option>
-                  </select>
-                  <small className="field-hint">
-                    Define em qual canal este produto estará disponível. Deixe em branco para disponibilizar em todos os canais.
-                  </small>
-                </div>
-                
-                <div className="form-group">
-                  <label>Empresas Autorizadas (Ctrl/Cmd + Clique para selecionar múltiplas)</label>
-                  <select
-                    multiple
-                    value={formData.empresas_autorizadas}
-                    onChange={handleEmpresasChange}
-                    disabled={updating || loadingEmpresas}
-                    style={{ minHeight: '120px' }}
-                  >
-                    {loadingEmpresas ? (
-                      <option disabled>Carregando empresas...</option>
-                    ) : empresas.length === 0 ? (
-                      <option disabled>Nenhuma empresa cadastrada</option>
-                    ) : (
-                      empresas.map(empresa => (
-                        <option key={empresa.usuario_id} value={empresa.usuario_id}>
-                          {empresa.nome} ({empresa.email})
-                        </option>
-                      ))
-                    )}
-                  </select>
-                  <small className="field-hint">
-                    Selecione as empresas que podem usar este produto. Deixe em branco para permitir todas as empresas. Use Ctrl/Cmd + Clique para selecionar múltiplas.
-                  </small>
                 </div>
               </div>
             </div>
@@ -556,8 +598,68 @@ function EditImovel() {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
+
+      {/* Modal de Criar Categoria */}
+      {showCategoryModal && (
+        <div className="modal-overlay" onClick={() => setShowCategoryModal(false)}>
+          <div className="modal-content category-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Nova Categoria</h3>
+              <button 
+                className="modal-close" 
+                onClick={() => {
+                  setShowCategoryModal(false);
+                  setNewCategoryName('');
+                }}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="newCategoryName">Nome da Categoria *</label>
+                <input
+                  type="text"
+                  id="newCategoryName"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Ex: Eletrônico, Roupa, Alimento..."
+                  autoFocus
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCreateCategory();
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => {
+                  setShowCategoryModal(false);
+                  setNewCategoryName('');
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="save-btn"
+                onClick={handleCreateCategory}
+                disabled={!newCategoryName.trim()}
+              >
+                <FaCheck /> Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

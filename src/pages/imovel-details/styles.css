@@ -47,7 +47,7 @@
   color: #3182ce;
 }
 
-/* Estilos específicos para PDV de Produtos */
+/* Estilos específicos para PDV de Projetos */
 .stock-mini {
   font-size: 0.75rem;
   padding: 0.1rem 0.4rem;
@@ -103,7 +103,7 @@
   opacity: 0.6;
 }
 
-/* Ajustes no grid de produtos */
+/* Ajustes no grid de projetos */
 .produto-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -125,6 +125,27 @@
 .info-item strong {
   font-size: 0.85rem;
   color: #2d3748;
+}
+
+.empresa-info {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #fbbf24;
+  margin-top: 0.5rem;
+}
+
+.empresa-info span {
+  color: #92400e;
+  font-weight: 600;
+}
+
+.empresa-name {
+  color: #92400e !important;
+  font-weight: 700 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Melhorias na lista mini */
@@ -250,7 +271,7 @@
   border-color: #3182ce;
 }
 
-/* Lista Mini de Produtos */
+/* Lista Mini de Projetos */
 .produtos-lista {
   background: white;
   padding: 1.5rem;
@@ -338,7 +359,7 @@
   color: #718096;
 }
 
-/* Lista Completa de Produtos */
+/* Lista Completa de Projetos */
 .produtos-completa {
   background: white;
   padding: 1.5rem;

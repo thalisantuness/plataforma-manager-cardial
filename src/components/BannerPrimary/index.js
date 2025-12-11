@@ -1,8 +1,15 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./styles.css";
 import { TypeAnimation } from 'react-type-animation';
 
 function Highlights() {  
+  const navigate = useNavigate();
+
+  const handleComeceJa = () => {
+    navigate('/projetos');
+  };
+
   return (
     <div className="page-container">
     
@@ -34,7 +41,7 @@ function Highlights() {
 
       <p> 
       Vamos manejar seu varejo?</p> 
-      <button>Comece já</button>
+      <button onClick={handleComeceJa}>Comece já</button>
 
 
 

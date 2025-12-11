@@ -12,7 +12,7 @@ function Statistics() {
         <p>
         No mundo dos imóveis, contar com especialistas faz toda a diferença. Com experiência, transparência e compromisso, encontramos o lugar perfeito para você, seja para morar ou investir. Transforme seu sonho em realidade com quem entende do mercado!
         </p>
-        <a href="">Saiba Mais →</a>
+        <button type="button" className="link-button">Saiba Mais →</button>
       </div>
 
 

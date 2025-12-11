@@ -1,7 +1,6 @@
 // pages/referrals/index.js
 import React, { useState } from "react";
 import SideBar from "../../components/SideBar/index";
-import Footer from "../../components/Footer/index";
 import { FaUserPlus, FaGift, FaPhone, FaEnvelope, FaCheckCircle, FaClock } from "react-icons/fa";
 import "./styles.css";
 
@@ -97,7 +96,7 @@ function ReferralsPage() {
 
   const handleContact = (phone, name) => {
     // Aqui você implementaria o contato via WhatsApp
-    const message = `Olá ${name}! Vi que você foi indicado(a) para nossa loja. Gostaria de conhecer nossos produtos?`;
+    const message = `Olá ${name}! Vi que você foi indicado(a) para nossa loja. Gostaria de conhecer nossos projetos?`;
     const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -294,7 +293,6 @@ function ReferralsPage() {
             )}
           </div>
         </div>
-        <Footer />
       </div>
     </div>
   );

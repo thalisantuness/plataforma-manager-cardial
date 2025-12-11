@@ -30,7 +30,7 @@ function Blog() {
         </p>
       
 
-        <a href="#">Confira &rarr;</a>
+        <button type="button" className="link-button">Confira &rarr;</button>
       </div>
     </div>
   );

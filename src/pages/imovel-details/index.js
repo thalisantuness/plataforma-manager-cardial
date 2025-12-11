@@ -2,22 +2,23 @@ import React, { useState, useEffect } from "react";
 import { FaShoppingCart, FaTrash, FaPlus, FaMinus, FaSearch } from "react-icons/fa";
 import axios from "axios";
 import { usePlataforma } from "../../context/PlataformaContext";
+import { API_ENDPOINTS } from "../../config/api";
 import "./styles.css";
 import { ToastContainer, toast } from 'react-toastify';
 import SideBar from "../../components/SideBar/index";
 
 function PDVVendas() {
-  const [produtos, setProdutos] = useState([]);
+  const [projetos, setProjetos] = useState([]);
   const [carrinho, setCarrinho] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const { getAuthHeaders, isAuthenticated } = usePlataforma();
 
   // URL da API
-  const API_URL = "https://back-pdv-production.up.railway.app/produtos";
+  const API_URL = API_ENDPOINTS.PROJETOS;
 
   useEffect(() => {
-    const fetchProdutos = async () => {
+    const fetchProjetos = async () => {
       try {
         if (!isAuthenticated()) {
           toast.error("Usuário não autenticado!");
@@ -29,7 +30,7 @@ function PDVVendas() {
         });
 
         if (Array.isArray(response.data)) {
-          const produtosData = response.data.map(produto => ({
+          const projetosData = response.data.map(produto => ({
             id: produto.produto_id,
             nome: produto.nome,
             valor: produto.valor,
@@ -41,31 +42,35 @@ function PDVVendas() {
             imageData: produto.imageData,
             photos: produto.photos || [],
             data_cadastro: produto.data_cadastro,
-            data_update: produto.data_update
+            data_update: produto.data_update,
+            empresa_id: produto.empresa_id,
+            empresa_nome: produto.Empresa?.nome || produto.empresa_nome || null,
+            empresa: produto.Empresa || null
           }));
 
-          setProdutos(produtosData);
+          setProjetos(projetosData);
         } else {
           console.warn("Estrutura de resposta inesperada:", response.data);
-          setProdutos([]);
+          setProjetos([]);
         }
       } catch (error) {
-        console.error("Erro ao buscar produtos:", error);
-        toast.error("Erro ao carregar produtos!");
+        console.error("Erro ao buscar projetos:", error);
+        toast.error("Erro ao carregar projetos!");
       }
     };
 
-    fetchProdutos();
+    fetchProjetos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   useEffect(() => {
-    // Filtrar produtos baseado no termo de pesquisa (nome ou código)
-    const filtered = produtos.filter(produto =>
+    // Filtrar projetos baseado no termo de pesquisa (nome ou código)
+    const filtered = projetos.filter(produto =>
       produto.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       produto.id.toString().includes(searchTerm)
     );
     setFilteredProducts(filtered);
-  }, [searchTerm, produtos]);
+  }, [searchTerm, projetos]);
 
   const adicionarAoCarrinho = (produto) => {
     // Verificar se há estoque disponível
@@ -118,10 +123,9 @@ function PDVVendas() {
     }
 
     // Encontrar o produto para verificar o estoque
-    const produtoNoCarrinho = carrinho.find(item => item.id === produtoId);
-    const produtoOriginal = produtos.find(p => p.id === produtoId);
+    const projetoOriginal = projetos.find(p => p.id === produtoId);
 
-    if (produtoOriginal && novaQuantidade > produtoOriginal.quantidade) {
+    if (projetoOriginal && novaQuantidade > projetoOriginal.quantidade) {
       toast.error("Quantidade solicitada excede o estoque disponível!");
       return;
     }
@@ -145,7 +149,7 @@ function PDVVendas() {
 
   const finalizarVenda = async () => {
     if (carrinho.length === 0) {
-      toast.error("Adicione produtos ao carrinho primeiro!");
+      toast.error("Adicione projetos ao carrinho primeiro!");
       return;
     }
 
@@ -174,13 +178,13 @@ function PDVVendas() {
         autoClose: 3000,
       });
       
-      // Recarregar produtos para atualizar estoque
+      // Recarregar projetos para atualizar estoque
       const response = await axios.get(API_URL, {
         headers: getAuthHeaders()
       });
       
       if (Array.isArray(response.data)) {
-        const produtosData = response.data.map(produto => ({
+        const projetosData = response.data.map(produto => ({
           id: produto.produto_id,
           nome: produto.nome,
           valor: produto.valor,
@@ -192,9 +196,12 @@ function PDVVendas() {
           imageData: produto.imageData,
           photos: produto.photos || [],
           data_cadastro: produto.data_cadastro,
-          data_update: produto.data_update
+          data_update: produto.data_update,
+          empresa_id: produto.empresa_id,
+          empresa_nome: produto.Empresa?.nome || produto.empresa_nome || null,
+          empresa: produto.Empresa || null
         }));
-        setProdutos(produtosData);
+        setProjetos(projetosData);
       }
       
       setCarrinho([]);
@@ -226,7 +233,7 @@ function PDVVendas() {
           
           {/* Header do PDV */}
           <div className="pdv-header">
-            <h1>Ponto de Venda - Produtos</h1>
+            <h1>Ponto de Venda - Projetos</h1>
             <div className="carrinho-info">
               <FaShoppingCart className="carrinho-icon" />
               <span className="carrinho-count">{calcularTotalItens()} itens</span>
@@ -242,14 +249,14 @@ function PDVVendas() {
           </div>
 
           <div className="pdv-content">
-            {/* Seção de Pesquisa e Lista de Produtos */}
+            {/* Seção de Pesquisa e Lista de Projetos */}
             <div className="produtos-section">
               <div className="search-section">
                 <div className="search-box">
                   <FaSearch className="search-icon" />
                   <input
                     type="text"
-                    placeholder="Pesquisar por nome ou código do produto..."
+                    placeholder="Pesquisar por nome ou código do projeto..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="search-input"
@@ -258,7 +265,7 @@ function PDVVendas() {
               </div>
 
               <div className="produtos-lista">
-                <h3>Produtos Encontrados ({filteredProducts.length})</h3>
+                <h3>Projetos Encontrados ({filteredProducts.length})</h3>
                 {filteredProducts.length === 0 ? (
                   <div className="no-products">
                     <p>Nenhum produto encontrado</p>
@@ -294,11 +301,11 @@ function PDVVendas() {
                 )}
               </div>
 
-              {/* Lista Completa de Produtos */}
+              {/* Lista Completa de Projetos */}
               <div className="produtos-completa">
-                <h3>Todos os Produtos ({produtos.length})</h3>
+                <h3>Todos os Projetos ({projetos.length})</h3>
                 <div className="produtos-grid">
-                  {produtos.map((produto) => {
+                  {projetos.map((produto) => {
                     const stockStatus = getStockStatus(produto.quantidade);
                     return (
                       <div key={produto.id} className="produto-card">
@@ -324,8 +331,18 @@ function PDVVendas() {
                             </div>
                             <div className="info-item">
                               <span>Tipo:</span>
-                              <strong>{produto.tipo_comercializacao}</strong>
+                              <strong>
+                                {produto.tipo_comercializacao === 'ecommerce' && produto.empresa_nome
+                                  ? produto.empresa_nome
+                                  : produto.tipo_comercializacao}
+                              </strong>
                             </div>
+                            {produto.empresa_nome && produto.tipo_comercializacao === 'ecommerce' && (
+                              <div className="info-item empresa-info">
+                                <span>Vendido por:</span>
+                                <strong className="empresa-name">🏢 {produto.empresa_nome}</strong>
+                              </div>
+                            )}
                             <div className="info-item">
                               <span>Estoque:</span>
                               <strong className={stockStatus.class}>
@@ -368,7 +385,7 @@ function PDVVendas() {
                   <div className="carrinho-vazio">
                     <FaShoppingCart className="carrinho-vazio-icon" />
                     <p>Seu carrinho está vazio</p>
-                    <span>Adicione produtos para iniciar uma venda</span>
+                    <span>Adicione projetos para iniciar uma venda</span>
                   </div>
                 ) : (
                   <div className="carrinho-itens">

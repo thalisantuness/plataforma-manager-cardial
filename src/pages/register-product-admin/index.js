@@ -2,7 +2,6 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import SideBar from "../../components/SideBar/index";
 import FormRegister from "../../components/FormRegister/index";
-import Footer from "../../components/Footer/index";
 import "../../global.css";
 
 function RegisterProduct() {
@@ -13,7 +12,6 @@ function RegisterProduct() {
       <SideBar />
       <div className="main-content">
         <FormRegister productId={id} /> {/* Passe o ID para o FormRegister */}
-        <Footer />
       </div>
     </div>
   );

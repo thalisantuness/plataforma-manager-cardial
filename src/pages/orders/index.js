@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from "react";
 import SideBar from "../../components/SideBar/index";
-import Footer from "../../components/Footer/index";
-import { FaPlus, FaTimes, FaSearch, FaDollarSign, FaUser, FaCalendar, FaEdit, FaTrash, FaEye, FaCheck, FaBan, FaShoppingCart, FaMoneyBillWave, FaChartLine, FaCalendarCheck } from "react-icons/fa";
+import { FaPlus, FaTimes, FaSearch, FaDollarSign, FaUser, FaCalendar, FaEdit, FaTrash, FaEye, FaCheck, FaBan, FaShoppingCart, FaMoneyBillWave, FaChartLine, FaCalendarCheck, FaCoins } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { usePlataforma } from "../../context/PlataformaContext";
+import { API_ENDPOINTS } from "../../config/api";
 import "./styles.css";
 
 function OrdersPage() {
-  const API_URL = "https://back-pdv-production.up.railway.app/pedidos";
-  const PRODUTOS_API_URL = "https://back-pdv-production.up.railway.app/produtos";
-  const USUARIOS_API_URL = "https://back-pdv-production.up.railway.app/usuarios";
+  const API_URL = API_ENDPOINTS.PEDIDOS;
+  const PROJETOS_API_URL = API_ENDPOINTS.PROJETOS;
+  const USUARIOS_API_URL = API_ENDPOINTS.USUARIOS;
   
   const { getAuthHeaders, usuario: usuarioLogado } = usePlataforma();
   
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [orders, setOrders] = useState([]);
-  const [produtos, setProdutos] = useState([]);
+  const [projetos, setProjetos] = useState([]);
   const [empresas, setEmpresas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [loadingProdutos, setLoadingProdutos] = useState(false);
+  const [loadingProjetos, setLoadingProjetos] = useState(false);
   const [loadingUsuarios, setLoadingUsuarios] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -40,54 +40,105 @@ function OrdersPage() {
     observacao: ""
   });
 
-  // Carregar pedidos, produtos e usuários ao montar o componente
+  // Carregar projetos e usuários primeiro, depois pedidos (para ter valor_custo disponível)
   useEffect(() => {
-    carregarPedidos();
-    carregarProdutos();
-    carregarUsuarios();
+    const carregarDados = async () => {
+      const projetosCarregados = await carregarProjetos();
+      await carregarUsuarios();
+      await carregarPedidos(projetosCarregados); // Passar projetos diretamente para garantir que estão disponíveis
+    };
+    carregarDados();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const carregarPedidos = async () => {
+  const carregarPedidos = async (projetosParaUsar = null) => {
     try {
       setLoadingOrders(true);
-      const response = await axios.get(API_URL, {
+      // Adicionar cache busting para evitar 304 Not Modified
+      const response = await axios.get(`${API_URL}?_t=${Date.now()}`, {
         headers: getAuthHeaders()
       });
 
-      const pedidosMapeados = response.data.map(pedido => ({
-        id: `ORD-${String(pedido.pedido_id).padStart(3, '0')}`,
-        pedido_id: pedido.pedido_id,
-        produto_id: pedido.produto_id,
-        quantidade: pedido.quantidade || 1,
-        // Informações do Cliente
-        cliente_id: pedido.cliente_id,
-        cliente: pedido.Cliente?.nome || "Cliente não informado",
-        cliente_email: pedido.Cliente?.email || "-",
-        cliente_telefone: pedido.Cliente?.telefone || "-",
-        cliente_role: pedido.Cliente?.role || "-",
-        // Informações da Empresa
-        empresa_id: pedido.empresa_id,
-        empresa_nome: pedido.Empresa?.nome || "Empresa não informada",
-        empresa_email: pedido.Empresa?.email || "-",
-        empresa_telefone: pedido.Empresa?.telefone || "-",
-        empresa_role: pedido.Empresa?.role || "-",
-        // Informações do Produto
-        produto_nome: pedido.Produto?.nome || "Produto não informado",
-        produto_valor: pedido.Produto?.valor || 0,
-        produto_foto: pedido.Produto?.foto_principal,
-        produto_menu: pedido.Produto?.menu,
-        // Calcular total
-        total: (pedido.Produto?.valor || 0) * (pedido.quantidade || 1),
-        // Outras informações
-        status: pedido.status,
-        data_hora_entrega: pedido.data_hora_entrega,
-        observacao: pedido.observacao || "Sem observações",
-        data_cadastro: pedido.data_cadastro,
-        data_update: pedido.data_update
-      }));
+      // Usar projetos passados como parâmetro ou o estado (priorizar parâmetro)
+      const projetosDisponiveis = projetosParaUsar || projetos;
+
+      const pedidosMapeados = response.data.map(pedido => {
+        // Tratar caso onde Produto é null
+        const produto = pedido.Produto || null;
+        
+        // Buscar projeto completo na lista de projetos carregados para pegar valor_custo
+        // O objeto Projeto do pedido não tem valor_custo, então precisamos buscar na lista
+        const projetoCompleto = projetosDisponiveis.find(p => p.produto_id === pedido.produto_id);
+        
+        // Usar projeto completo da lista se disponível, senão usar o do pedido
+        // Mas sempre priorizar valor_custo da lista de projetos
+        const projetoFinal = projetoCompleto || produto;
+        
+        // Garantir que valor_custo seja um número válido
+        // O valor_custo só vem na lista de projetos, não no objeto Projeto do pedido
+        const valorVenda = parseFloat(projetoFinal?.valor || produto?.valor || 0) || 0;
+        const valorCusto = parseFloat(projetoCompleto?.valor_custo || 0) || 0;
+        const quantidade = parseFloat(pedido.quantidade) || 1;
+        
+        // Debug: logar se valor_custo estiver zerado e projeto não foi encontrado
+        if (valorCusto === 0 && valorVenda > 0 && !projetoCompleto) {
+          console.warn(`⚠️ Projeto ID ${pedido.produto_id} não encontrado na lista de projetos. Lucro será igual ao faturamento.`, {
+            produto_id: pedido.produto_id,
+            projetos_carregados: projetosDisponiveis.length,
+            projeto_ids_disponiveis: projetosDisponiveis.map(p => p.produto_id)
+          });
+        }
+        
+        return {
+          id: `${String(pedido.pedido_id).padStart(3, '0')}`,
+          pedido_id: pedido.pedido_id,
+          produto_id: pedido.produto_id,
+          quantidade: quantidade,
+          // Informações do Cliente
+          cliente_id: pedido.cliente_id,
+          cliente: pedido.Cliente?.nome || "Cliente não informado",
+          cliente_email: pedido.Cliente?.email || "-",
+          cliente_telefone: pedido.Cliente?.telefone || "-",
+          cliente_endereco: pedido.Cliente?.cliente_endereco || pedido.Cliente?.endereco || null,
+          cliente_role: pedido.Cliente?.role || "-",
+          // Informações da Empresa
+          empresa_id: pedido.empresa_id,
+          empresa_nome: pedido.Empresa?.nome || "Empresa não informada",
+          empresa_email: pedido.Empresa?.email || "-",
+          empresa_telefone: pedido.Empresa?.telefone || "-",
+          empresa_role: pedido.Empresa?.role || "-",
+          // Informações do Produto (com verificação de null)
+          produto_nome: produto?.nome || "Produto não informado",
+          produto_valor: valorVenda,
+          produto_valor_custo: valorCusto,
+          produto_foto: produto?.foto_principal || null,
+          produto_menu: produto?.menu || null,
+          // Calcular total
+          total: valorVenda * quantidade,
+          // Calcular lucro (valor de venda - valor de custo) * quantidade
+          lucro: (valorVenda - valorCusto) * quantidade,
+          // Outras informações
+          status: pedido.status,
+          data_hora_entrega: pedido.data_hora_entrega,
+          observacao: pedido.observacao || "Sem observações",
+          data_cadastro: pedido.data_cadastro,
+          data_update: pedido.data_update
+        };
+      });
 
       setOrders(pedidosMapeados);
+      console.log(`✅ ${pedidosMapeados.length} pedidos carregados. Projetos disponíveis: ${projetosDisponiveis.length}`);
+      
+      // Verificar se todos os projetos dos pedidos foram encontrados
+      const projetosNaoEncontrados = pedidosMapeados.filter(p => {
+        const projetoCompleto = projetosDisponiveis.find(prod => prod.produto_id === p.produto_id);
+        return !projetoCompleto && p.produto_valor > 0;
+      });
+      
+      if (projetosNaoEncontrados.length > 0) {
+        console.warn(`⚠️ ${projetosNaoEncontrados.length} pedidos com projetos não encontrados na lista. IDs:`, 
+          projetosNaoEncontrados.map(p => p.produto_id));
+      }
     } catch (error) {
       console.error("Erro ao carregar pedidos:", error);
       toast.error("Erro ao carregar pedidos da API!");
@@ -96,34 +147,39 @@ function OrdersPage() {
     }
   };
 
-  const carregarProdutos = async () => {
+  const carregarProjetos = async () => {
     try {
-      setLoadingProdutos(true);
-      const response = await axios.get(PRODUTOS_API_URL, {
+      setLoadingProjetos(true);
+      const response = await axios.get(PROJETOS_API_URL, {
         headers: getAuthHeaders()
       });
       
-      // Filtrar produtos baseado nas empresas autorizadas
-      let produtosFiltrados = response.data;
+      // Filtrar projetos baseado nas empresas autorizadas
+      let projetosFiltrados = response.data;
       
-      // Se o usuário for empresa, mostrar apenas produtos que ele pode usar
+      // Se o usuário for empresa, mostrar apenas projetos que ele pode usar
       if (usuarioLogado?.role === "empresa") {
-        produtosFiltrados = response.data.filter(produto => {
-          // Se empresas_autorizadas está vazio ou null, produto disponível para todos
-          if (!produto.empresas_autorizadas || produto.empresas_autorizadas.length === 0) {
+        projetosFiltrados = response.data.filter(projeto => {
+          // Se empresas_autorizadas está vazio ou null, projeto disponível para todos
+          if (!projeto.empresas_autorizadas || projeto.empresas_autorizadas.length === 0) {
             return true;
           }
           // Se empresas_autorizadas tem IDs, verificar se a empresa está na lista
-          return produto.empresas_autorizadas.includes(usuarioLogado.usuario_id);
+          return projeto.empresas_autorizadas.includes(usuarioLogado.usuario_id);
         });
       }
       
-      setProdutos(produtosFiltrados);
+      setProjetos(projetosFiltrados);
+      console.log(`✅ ${projetosFiltrados.length} projetos carregados para cálculo de lucro`);
+      
+      // Retornar projetos para uso imediato (antes do estado ser atualizado)
+      return projetosFiltrados;
     } catch (error) {
-      console.error("Erro ao carregar produtos:", error);
-      toast.error("Erro ao carregar lista de produtos!");
+      console.error("Erro ao carregar projetos:", error);
+      toast.error("Erro ao carregar lista de projetos!");
+      return []; // Retornar array vazio em caso de erro
     } finally {
-      setLoadingProdutos(false);
+      setLoadingProjetos(false);
     }
   };
 
@@ -156,30 +212,47 @@ function OrdersPage() {
     
     // Faturamento realizado (pedidos confirmados e entregues)
     const faturamentoRealizado = orders
-      .filter(o => o.status === 'confirmado' || o.status === 'entregue')
-      .reduce((total, o) => total + o.total, 0);
+      .filter(o => o && (o.status === 'confirmado' || o.status === 'entregue'))
+      .reduce((total, o) => total + (o.total || 0), 0);
+    
+    // Lucro realizado (pedidos confirmados e entregues)
+    const lucroRealizado = orders
+      .filter(o => o && (o.status === 'confirmado' || o.status === 'entregue'))
+      .reduce((total, o) => total + (o.lucro || 0), 0);
     
     // Previsão de faturamento (pedidos pendentes e em transporte)
     const previsaoFaturamento = orders
-      .filter(o => o.status === 'pendente' || o.status === 'em_transporte')
-      .reduce((total, o) => total + o.total, 0);
+      .filter(o => o && (o.status === 'pendente' || o.status === 'em_transporte'))
+      .reduce((total, o) => total + (o.total || 0), 0);
     
-    // Pedidos de hoje
-    const pedidosHoje = orders.filter(o => 
-      o.data_hora_entrega.split('T')[0] === hoje
-    );
+    // Previsão de lucro (pedidos pendentes e em transporte)
+    const previsaoLucro = orders
+      .filter(o => o && (o.status === 'pendente' || o.status === 'em_transporte'))
+      .reduce((total, o) => total + (o.lucro || 0), 0);
+    
+    // Pedidos de hoje (com verificação de data_hora_entrega)
+    const pedidosHoje = orders.filter(o => {
+      if (!o || !o.data_hora_entrega) return false;
+      try {
+        return o.data_hora_entrega.split('T')[0] === hoje;
+      } catch {
+        return false;
+      }
+    });
     
     const faturamentoHoje = pedidosHoje
-      .filter(o => o.status === 'confirmado' || o.status === 'entregue')
-      .reduce((total, o) => total + o.total, 0);
+      .filter(o => o && (o.status === 'confirmado' || o.status === 'entregue'))
+      .reduce((total, o) => total + (o.total || 0), 0);
     
     const previsaoHoje = pedidosHoje
-      .filter(o => o.status === 'pendente' || o.status === 'em_transporte')
-      .reduce((total, o) => total + o.total, 0);
+      .filter(o => o && (o.status === 'pendente' || o.status === 'em_transporte'))
+      .reduce((total, o) => total + (o.total || 0), 0);
 
     return {
       faturamentoRealizado,
+      lucroRealizado,
       previsaoFaturamento,
+      previsaoLucro,
       faturamentoHoje,
       previsaoHoje,
       pedidosHoje: pedidosHoje.length,
@@ -195,10 +268,12 @@ function OrdersPage() {
   const estatisticas = calcularEstatisticas();
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.produto_nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.empresa_nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = 
+      (order.cliente || "").toLowerCase().includes(searchLower) ||
+      (order.id || "").toLowerCase().includes(searchLower) ||
+      (order.produto_nome || "").toLowerCase().includes(searchLower) ||
+      (order.empresa_nome || "").toLowerCase().includes(searchLower);
     
     if (filter === "all") return matchesSearch;
     return order.status === filter && matchesSearch;
@@ -352,7 +427,7 @@ function OrdersPage() {
       
       if (errorData?.error) {
         if (errorData.error.includes("não autorizada")) {
-          errorMessage = "⚠️ Empresa não autorizada a usar este produto. Por favor, selecione outro produto ou entre em contato com o administrador.";
+          errorMessage = "⚠️ Empresa não autorizada a usar este projeto. Por favor, selecione outro projeto ou entre em contato com o administrador.";
         } else {
           errorMessage = errorData.error;
         }
@@ -510,6 +585,24 @@ function OrdersPage() {
               </div>
             </div>
 
+            <div className="big-number-card profit-card">
+              <div className="big-number-icon">
+                <FaCoins />
+              </div>
+              <div className="big-number-content">
+                <span className="big-number-value">
+                  {formatCurrency(estatisticas.lucroRealizado)}
+                </span>
+                <span className="big-number-label">Lucro Realizado</span>
+                <span className="big-number-subtitle">Pedidos Confirmados/Entregues</span>
+                {estatisticas.previsaoLucro > 0 && (
+                  <span className="profit-forecast">
+                    Previsão: {formatCurrency(estatisticas.previsaoLucro)}
+                  </span>
+                )}
+              </div>
+            </div>
+
             <div className="big-number-card total-card">
               <div className="big-number-icon">
                 <FaShoppingCart />
@@ -534,7 +627,7 @@ function OrdersPage() {
               <FaSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="Buscar por cliente, ID, produto ou empresa..."
+                placeholder="Buscar por cliente, ID, projeto ou empresa..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -596,6 +689,7 @@ function OrdersPage() {
                 return (
                   <div key={order.pedido_id} className="order-card">
                     <div className="order-card-content">
+                      {/* Código da foto removido - ver ANIMATION_CODE_BACKUP.md para reaproveitar a animação
                       {order.produto_foto && (
                         <div className="order-image">
                           <img 
@@ -607,6 +701,7 @@ function OrdersPage() {
                           />
                         </div>
                       )}
+                      */}
 
                       <div className="order-info-container">
                         <div className="order-header">
@@ -626,9 +721,9 @@ function OrdersPage() {
                           </div>
                         </div>
 
-                        {/* Detalhes do Produto */}
+                        {/* Detalhes do Projeto */}
                         <div className="products-details-section">
-                          <h4>📦 Produto</h4>
+                          <h4>📦 Projeto</h4>
                           <div className="product-item">
                             <div className="product-info">
                               <strong>{order.produto_nome}</strong>
@@ -650,6 +745,13 @@ function OrdersPage() {
                             <p><strong>Nome:</strong> {order.cliente}</p>
                             <p><strong>Email:</strong> {order.cliente_email}</p>
                             <p><strong>Telefone:</strong> {order.cliente_telefone}</p>
+                            {order.cliente_endereco && 
+                             order.cliente_endereco !== "-" && 
+                             order.cliente_endereco !== null && 
+                             order.cliente_endereco !== undefined &&
+                             String(order.cliente_endereco).trim() !== "" && (
+                              <p><strong> Endereço:</strong> {order.cliente_endereco}</p>
+                            )}
                           </div>
 
                           <div className="company-info">
@@ -730,7 +832,8 @@ function OrdersPage() {
                           )}
 
                           {/* Botões para pedidos com status "em_transporte" */}
-                          {order.status === "em_transporte" && (
+                          {/* Apenas CLIENTE pode marcar como entregue quando está em transporte */}
+                          {order.status === "em_transporte" && usuarioLogado?.role === "cliente" && (
                             <>
                               <button
                                 className="action-btn delivered-btn"
@@ -739,6 +842,13 @@ function OrdersPage() {
                                 ✅ Marcar como Entregue
                               </button>
                             </>
+                          )}
+                          
+                          {/* Empresa não vê botão de entregue quando está em transporte */}
+                          {order.status === "em_transporte" && (usuarioLogado?.role === "empresa" || usuarioLogado?.role === "empresa-funcionario") && (
+                            <div className="info-message">
+                              <p>📦 Pedido em transporte. Aguardando confirmação do cliente.</p>
+                            </div>
                           )}
 
                           {/* Botões para pedidos com status "cancelado" */}
@@ -766,7 +876,6 @@ function OrdersPage() {
             )}
           </div>
         </div>
-        <Footer />
       </div>
 
       {/* Modal de Adicionar/Editar Pedido */}
@@ -786,18 +895,18 @@ function OrdersPage() {
                 
                 <div className="form-row">
                   <div className="form-group">
-                    <label htmlFor="produto_id">Produto *</label>
+                    <label htmlFor="produto_id">Projeto *</label>
                     <select
                       id="produto_id"
                       name="produto_id"
                       value={formData.produto_id}
                       onChange={handleInputChange}
                       required
-                      disabled={loadingProdutos}
+                      disabled={loadingProjetos}
                     >
-                      <option value="">Selecione o produto</option>
-                      {produtos.map(produto => {
-                        // Verificar se o produto está disponível para a empresa selecionada
+                      <option value="">Selecione o projeto</option>
+                      {projetos.map(produto => {
+                        // Verificar se o projeto está disponível para a empresa selecionada
                         const empresaSelecionadaId = parseInt(formData.empresa_id);
                         let disponivel = true;
                         let motivoIndisponivel = '';
@@ -821,10 +930,10 @@ function OrdersPage() {
                         );
                       })}
                     </select>
-                    {loadingProdutos && <p className="loading-text">Carregando produtos...</p>}
+                    {loadingProjetos && <p className="loading-text">Carregando projetos...</p>}
                     {formData.empresa_id && (
                       <p className="info-text">
-                        💡 Produtos marcados com ⚠️ não estão disponíveis para a empresa selecionada
+                        💡 Projetos marcados com ⚠️ não estão disponíveis para a empresa selecionada
                       </p>
                     )}
                   </div>
@@ -970,11 +1079,13 @@ function OrdersPage() {
             </div>
 
             <div className="order-details-modal">
+              {/* Código da foto removido - ver ANIMATION_CODE_BACKUP.md para reaproveitar a animação
               {pedidoEditando.produto_foto && (
                 <div className="detail-image">
                   <img src={pedidoEditando.produto_foto} alt={pedidoEditando.produto_nome} />
                 </div>
               )}
+              */}
               
               <div className="detail-info">
                 <div className="detail-group">
@@ -992,7 +1103,7 @@ function OrdersPage() {
                 </div>
 
                 <div className="detail-group">
-                  <h3>Produto</h3>
+                  <h3>Projeto</h3>
                   <p><strong>Nome:</strong> {pedidoEditando.produto_nome}</p>
                   <p><strong>Quantidade:</strong> {pedidoEditando.quantidade}</p>
                   <p><strong>Valor Unitário:</strong> {formatCurrency(pedidoEditando.produto_valor)}</p>
@@ -1007,6 +1118,9 @@ function OrdersPage() {
                   <p><strong>Nome:</strong> {pedidoEditando.cliente}</p>
                   <p><strong>Email:</strong> {pedidoEditando.cliente_email}</p>
                   <p><strong>Telefone:</strong> {pedidoEditando.cliente_telefone}</p>
+                  {pedidoEditando.cliente_endereco && pedidoEditando.cliente_endereco !== "-" && pedidoEditando.cliente_endereco.trim() !== "" && (
+                    <p><strong> Endereço:</strong> {pedidoEditando.cliente_endereco}</p>
+                  )}
                 </div>
 
                 <div className="detail-group">
@@ -1067,7 +1181,7 @@ function OrdersPage() {
               <h3>Tem certeza que deseja excluir este pedido?</h3>
               <p><strong>{pedidoParaDeletar.id}</strong></p>
               <p><strong>Cliente:</strong> {pedidoParaDeletar.cliente}</p>
-              <p><strong>Produto:</strong> {pedidoParaDeletar.produto_nome}</p>
+              <p><strong>Projeto:</strong> {pedidoParaDeletar.produto_nome}</p>
               <p><strong>Total:</strong> {formatCurrency(pedidoParaDeletar.total)}</p>
               <p className="warning-text">Esta ação não pode ser desfeita!</p>
             </div>

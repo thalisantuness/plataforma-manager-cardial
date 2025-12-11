@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { FaTrash, FaEdit, FaPlus, FaUser, FaUserTie, FaUserShield, FaEnvelope, FaPhone, FaCalendar, FaSync, FaUserTag, FaBuilding, FaTimes, FaSave, FaExclamationTriangle } from "react-icons/fa";
+import { FaTrash, FaPlus, FaUser, FaUserTie, FaUserShield, FaEnvelope, FaPhone, FaCalendar, FaSync, FaUserTag, FaBuilding, FaTimes, FaSave, FaExclamationTriangle } from "react-icons/fa";
 import axios from "axios";
 import "./styles.css";
 import { ToastContainer, toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
 import SideBar from "../../components/SideBar/index";
 import { usePlataforma } from "../../context/PlataformaContext";
+import { API_ENDPOINTS } from "../../config/api";
 
 // Adicione 'react-toastify/dist/ReactToastify.css' se ainda não estiver importado no seu App.js
 import 'react-toastify/dist/ReactToastify.css';
@@ -22,6 +23,7 @@ function UserListAdmin() {
     senha: "",
     nome: "",
     telefone: "",
+    cliente_endereco: "",
     role: "cliente",
     foto_perfil: null // <- Vai armazenar a URL (edição) ou o base64 (novo upload)
   });
@@ -31,8 +33,8 @@ function UserListAdmin() {
   const navigate = useNavigate();
 
   // URL da API
-  const API_URL = "https://back-pdv-production.up.railway.app/usuarios";
-  const CADASTRO_URL = "https://back-pdv-production.up.railway.app/cadastrar";
+  const API_URL = API_ENDPOINTS.USUARIOS;
+  const CADASTRO_URL = API_ENDPOINTS.CADASTRO;
 
   useEffect(() => {
     if (!contextLoading) {
@@ -55,9 +57,16 @@ function UserListAdmin() {
         return;
       }
 
+      // Adiciona timestamp para evitar cache (304 Not Modified)
       const response = await axios.get(API_URL, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        params: {
+          _t: Date.now() // Cache busting
+        }
       });
+
+      console.log("Resposta da API /usuarios:", response.data);
+      console.log("Usuário logado:", usuarioLogado);
 
       let usersData = [];
 
@@ -76,6 +85,11 @@ function UserListAdmin() {
          return;
       }
       
+      // IMPORTANTE: O backend já faz toda a filtragem necessária:
+      // - Para empresas: retorna funcionários, empresas filhas E clientes que têm pedidos
+      // - Clientes aparecem automaticamente quando fazem pedidos (não precisa empresa_pai_id)
+      // - Um cliente pode aparecer na listagem de várias empresas
+      // O frontend apenas exibe os dados retornados, sem filtros adicionais
       const mappedUsers = usersData.map(user => ({
         id: user.usuario_id,
         nome: user.nome || user.email,
@@ -83,7 +97,8 @@ function UserListAdmin() {
         telefone: user.telefone || "Não informado",
         tipo: mapUserRole(user.role),
         role: user.role,
-        foto_perfil: user.foto_perfil || null, // <<< ADICIONADO
+        foto_perfil: user.foto_perfil || null,
+        empresa_pai_id: user.empresa_pai_id || null, // Pode ser null para clientes (não usado para filtro)
         data_cadastro: user.data_cadastro || new Date().toISOString(),
         ultimo_acesso: user.data_update || user.data_cadastro || new Date().toISOString()
       }));
@@ -196,6 +211,7 @@ function UserListAdmin() {
         senha: "", // Senha em branco para edição
         nome: userData.nome || "",
         telefone: userData.telefone || "",
+        cliente_endereco: userData.cliente_endereco || userData.endereco || "",
         role: userData.role || "cliente",
         foto_perfil: userData.foto_perfil || null // <- Carrega a URL da foto
       });
@@ -225,6 +241,7 @@ function UserListAdmin() {
       senha: "",
       nome: "",
       telefone: "",
+      cliente_endereco: "",
       role: defaultRole,
       foto_perfil: null // <- Limpa a foto
     });
@@ -240,6 +257,7 @@ function UserListAdmin() {
       senha: "",
       nome: "",
       telefone: "",
+      cliente_endereco: "",
       role: "cliente",
       foto_perfil: null // <- Limpa a foto
     });
@@ -301,6 +319,7 @@ function UserListAdmin() {
           email: formData.email,
           nome: formData.nome,
           telefone: formData.telefone,
+          cliente_endereco: formData.cliente_endereco || null,
           role: formData.role,
         };
 
@@ -335,15 +354,27 @@ function UserListAdmin() {
           senha: formData.senha,
           nome: formData.nome,
           telefone: formData.telefone,
+          cliente_endereco: formData.cliente_endereco || null,
           role: formData.role,
           // <<< LÓGICA DA FOTO PARA CADASTRO >>>
           // Envia o base64 se existir, ou null se não
-          foto_perfil: formData.foto_perfil || null 
+          foto_perfil: formData.foto_perfil || null
         };
 
-        await axios.post(CADASTRO_URL, payload, {
+        // Se o usuário logado for uma empresa, envia o ID da empresa pai para vincular
+        // Isso aplica tanto para clientes quanto para outras empresas
+        if (usuarioLogado?.role === 'empresa') {
+          payload.empresa_pai_id = usuarioLogado.usuario_id;
+        }
+
+        console.log("Payload enviado:", payload);
+        console.log("Usuário logado:", usuarioLogado);
+
+        const createResponse = await axios.post(CADASTRO_URL, payload, {
           headers: getAuthHeaders()
         });
+
+        console.log("Resposta da criação:", createResponse.data);
 
         toast.success("Usuário cadastrado com sucesso!", {
           position: "top-right",
@@ -352,7 +383,10 @@ function UserListAdmin() {
       }
 
       closeModal();
-      fetchUsers(); // Atualiza a lista de usuários
+      // Aguarda um pouco antes de atualizar para garantir que o backend processou
+      setTimeout(() => {
+        fetchUsers(); // Atualiza a lista de usuários
+      }, 500);
 
     } catch (error) {
       console.error("Erro ao salvar usuário:", error);
@@ -659,31 +693,45 @@ function UserListAdmin() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="role">Tipo de Usuário *</label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
+                <label htmlFor="cliente_endereco">
+                  Endereço
+                </label>
+                <input
+                  type="text"
+                  id="cliente_endereco"
+                  name="cliente_endereco"
+                  value={formData.cliente_endereco}
                   onChange={handleInputChange}
-                  required
-                  disabled={!isAdmin} // Desabilita se não for admin
-                >
-                  {isAdmin ? (
-                    <>
-                      <option value="admin">Administrador</option>
-                      <option value="empresa">Empresa</option>
-                      <option value="cliente">Cliente</option>
-                    </>
-                  ) : (
-                    <option value="empresa">Empresa</option>
-                  )}
-                </select>
-                {!isAdmin && (
-                  <small className="form-help">
-                    Empresas só podem cadastrar outras empresas
-                  </small>
-                )}
+                  placeholder="Digite o endereço completo (opcional)"
+                />
               </div>
+
+              {/* Campo "Tipo de Usuário" visível apenas para Administradores */}
+              {isAdmin && (
+                <div className="form-group">
+                  <label htmlFor="role">Tipo de Usuário *</label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value="admin">Administrador</option>
+                    <option value="empresa">Empresa</option>
+                    <option value="cliente">Cliente</option>
+                  </select>
+                </div>
+              )}
+              
+              {/* Para não-admins, o role é fixo como "empresa" (oculto) */}
+              {!isAdmin && (
+                <input
+                  type="hidden"
+                  name="role"
+                  value="empresa"
+                />
+              )}
 
               {/* <<< NOVO CAMPO DE FOTO >>> */}
               

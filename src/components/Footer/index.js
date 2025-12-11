@@ -1,7 +1,6 @@
 import React from "react";
 import "./styles.css";
 import Logo from "../../assets/logo-transparente.png"
-import { Link } from "react-router-dom";
 
 function Footer() {
   return (

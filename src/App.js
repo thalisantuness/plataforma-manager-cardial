@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { PlataformaProvider } from "./context/PlataformaContext";
+import { ChatProvider } from "./context/ChatContext";
 import "./global.css";
 
 import Home from "./pages/home";
@@ -14,14 +15,20 @@ import ProtectRoute from "./components/ProtectRoute"; // Corrigi para usar apena
 import EditImovel from "./pages/edit-product-admin";
 import OrdersPage from "./pages/orders";
 import ReferralsPage from "./pages/referrals";
+import ProfilePage from "./pages/profile";
+import RegisterCompany from "./pages/register-company";
+import ChatPage from "./pages/chat";
+import GraficosFaturamento from "./pages/graficos-faturamento";
 
 function App() {
   return (
     <PlataformaProvider>
-      <Router>
+      <ChatProvider>
+        <Router>
         <div className="container">
           <Routes>
             <Route path="/" element={<LoginAdmin />} />
+            <Route path="/registrar-empresa" element={<RegisterCompany />} />
 
             {/* Rotas protegidas */}
             <Route
@@ -34,7 +41,7 @@ function App() {
             />
 
             <Route
-              path="/produtos"
+              path="/projetos"
               element={
                 <ProtectRoute>
                   <ImovelListPage />
@@ -95,9 +102,37 @@ function App() {
                 </ProtectRoute>
               }
             />
+
+            <Route
+              path="/meu-perfil"
+              element={
+                <ProtectRoute>
+                  <ProfilePage />
+                </ProtectRoute>
+              }
+            />
+
+            <Route
+              path="/chat"
+              element={
+                <ProtectRoute>
+                  <ChatPage />
+                </ProtectRoute>
+              }
+            />
+
+            <Route
+              path="/graficos-faturamento"
+              element={
+                <ProtectRoute>
+                  <GraficosFaturamento />
+                </ProtectRoute>
+              }
+            />
           </Routes>
         </div>
       </Router>
+      </ChatProvider>
     </PlataformaProvider>
   );
 }

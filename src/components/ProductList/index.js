@@ -1,30 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { FaTrash, FaEdit, FaPlus, FaBox, FaSync, FaTimes, FaExclamationTriangle, FaSave, FaFilter } from "react-icons/fa";
+import { FaTrash, FaPlus, FaBox, FaSync, FaTimes, FaExclamationTriangle } from "react-icons/fa";
 import axios from "axios";
 import { usePlataforma } from "../../context/PlataformaContext";
+import { API_ENDPOINTS } from "../../config/api";
 import "./styles.css";
 import { ToastContainer, toast } from 'react-toastify';
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function ProductListAdmin() {
-  const [produtos, setProdutos] = useState([]);
+  const [projetos, setProjetos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPhotoDeleteModal, setShowPhotoDeleteModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [produtoToDelete, setProdutoToDelete] = useState(null);
   const [photoToDelete, setPhotoToDelete] = useState(null);
-  const [editingProduto, setEditingProduto] = useState(null);
-  const [formData, setFormData] = useState({
-    nome: "",
-    valor: "",
-    valor_custo: "",
-    quantidade: "",
-    tipo_comercializacao: "Venda",
-    tipo_produto: "Eletrônico",
-    foto_principal: ""
-  });
   const [filtros, setFiltros] = useState({
     nome: "",
     tipo_produto: "",
@@ -32,21 +22,21 @@ function ProductListAdmin() {
     quantidade_min: "",
     quantidade_max: ""
   });
-  const [formLoading, setFormLoading] = useState(false);
   
-  const { getAuthHeaders, isAuthenticated, loading: contextLoading, usuario: usuarioLogado } = usePlataforma();
+  const { getAuthHeaders, isAuthenticated, loading: contextLoading } = usePlataforma();
   const navigate = useNavigate();
 
   // URL da API
-  const API_URL = "https://back-pdv-production.up.railway.app/produtos";
+  const API_URL = API_ENDPOINTS.PROJETOS;
 
   useEffect(() => {
     if (!contextLoading) {
-      fetchProdutos();
+      fetchProjetos();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextLoading]);
 
-  const fetchProdutos = async (filtrosAplicados = {}) => {
+  const fetchProjetos = async (filtrosAplicados = {}) => {
     try {
       setLoading(true);
       
@@ -73,7 +63,7 @@ function ProductListAdmin() {
       });
 
       if (Array.isArray(response.data)) {
-        const produtosData = response.data.map(produto => ({
+        const projetosData = response.data.map(produto => ({
           id: produto.produto_id,
           nome: produto.nome,
           valor: produto.valor,
@@ -85,21 +75,24 @@ function ProductListAdmin() {
           imageData: produto.imageData,
           photos: produto.photos || [],
           data_cadastro: produto.data_cadastro,
-          data_update: produto.data_update
+          data_update: produto.data_update,
+          empresa_id: produto.empresa_id,
+          empresa_nome: produto.Empresa?.nome || produto.empresa_nome || null,
+          empresa: produto.Empresa || null
         }));
 
-        setProdutos(produtosData);
+        setProjetos(projetosData);
       } else {
         console.warn("Estrutura de resposta inesperada:", response.data);
-        setProdutos([]);
+        setProjetos([]);
       }
 
       setLoading(false);
       
     } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
+      console.error("Erro ao buscar projetos:", error);
       
-      const errorMessage = error.response?.data?.message || "Erro ao carregar produtos";
+      const errorMessage = error.response?.data?.message || "Erro ao carregar projetos";
       
       if (error.response?.status === 401) {
         toast.error("Sessão expirada! Faça login novamente.");
@@ -107,13 +100,13 @@ function ProductListAdmin() {
           navigate("/");
         }, 2000);
       } else if (error.response?.status === 403) {
-        toast.error("Acesso negado! Você não tem permissão para ver produtos.");
+        toast.error("Acesso negado! Você não tem permissão para ver projetos.");
       } else if (error.response?.status === 404) {
-        toast.info("Nenhum produto encontrado", {
+        toast.info("Nenhum projeto encontrado", {
           position: "top-right",
           autoClose: 4000,
         });
-        setProdutos([]);
+        setProjetos([]);
       } else {
         toast.error(errorMessage);
       }
@@ -135,7 +128,7 @@ function ProductListAdmin() {
         headers: getAuthHeaders()
       });
       
-      setProdutos(produtos.filter(produto => produto.id !== produtoToDelete.id));
+      setProjetos(projetos.filter(produto => produto.id !== produtoToDelete.id));
       toast.success("Produto excluído com sucesso!", {
         position: "top-right",
         autoClose: 3000,
@@ -180,8 +173,8 @@ function ProductListAdmin() {
         headers: getAuthHeaders()
       });
       
-      // Atualiza a lista de produtos removendo a foto
-      setProdutos(produtos.map(produto => {
+      // Atualiza a lista de projetos removendo a foto
+      setProjetos(projetos.map(produto => {
         if (produto.id === photoToDelete.produto.id) {
           return {
             ...produto,
@@ -230,7 +223,7 @@ function ProductListAdmin() {
   };
 
   const handleRefresh = () => {
-    fetchProdutos();
+    fetchProjetos();
   };
 
   const handleFilterChange = (e) => {
@@ -248,7 +241,7 @@ function ProductListAdmin() {
         filtrosAplicados[key] = filtros[key];
       }
     });
-    fetchProdutos(filtrosAplicados);
+    fetchProjetos(filtrosAplicados);
     setShowFilterModal(false);
   };
 
@@ -260,7 +253,7 @@ function ProductListAdmin() {
       quantidade_min: "",
       quantidade_max: ""
     });
-    fetchProdutos();
+    fetchProjetos();
     setShowFilterModal(false);
   };
 
@@ -272,9 +265,9 @@ function ProductListAdmin() {
   };
 
   // Calcular estatísticas
-  const totalProdutos = produtos.length;
-  const totalEstoque = produtos.reduce((total, produto) => total + (produto.quantidade || 0), 0);
-  const categoriasUnicas = [...new Set(produtos.map(p => p.tipo_produto))].length;
+  const totalProjetos = projetos.length;
+  const totalEstoque = projetos.reduce((total, produto) => total + (produto.quantidade || 0), 0);
+  const categoriasUnicas = [...new Set(projetos.map(p => p.tipo_produto))].length;
 
   // Loading do contexto
   if (contextLoading) {
@@ -300,7 +293,7 @@ function ProductListAdmin() {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Carregando produtos...</p>
+        <p>Carregando projetos...</p>
       </div>
     );
   }
@@ -313,7 +306,7 @@ function ProductListAdmin() {
           <div className="product-admin-header">
             <div className="header-title">
               <FaBox className="header-icon" />
-              <h1>Gerenciar Produtos</h1>
+              <h1>Gerenciar Projetos</h1>
             </div>
             <div className="header-actions">
               {/* <button 
@@ -344,8 +337,8 @@ function ProductListAdmin() {
                 <FaBox />
               </div>
               <div className="widget-content">
-                <div className="widget-value">{totalProdutos}</div>
-                <div className="widget-label">Total de Produtos</div>
+                <div className="widget-value">{totalProjetos}</div>
+                <div className="widget-label">Total de Projetos</div>
               </div>
             </div>
 
@@ -370,9 +363,9 @@ function ProductListAdmin() {
             </div>
           </div>
 
-          {/* Lista de Produtos */}
+          {/* Lista de Projetos */}
           <div className="products-list-container">
-            {produtos.length === 0 ? (
+            {projetos.length === 0 ? (
               <div className="not-found-message">
                 <FaBox className="not-found-icon" />
                 <h3>Nenhum produto encontrado</h3>
@@ -392,7 +385,7 @@ function ProductListAdmin() {
                 </div>
 
                 <div className="table-body">
-                  {produtos.map((produto) => (
+                  {projetos.map((produto) => (
                     <div key={produto.id} className="table-row">
                       <div className="table-col photo" data-label="Foto">
                         <img 
@@ -450,8 +443,15 @@ function ProductListAdmin() {
                         <span className="category-tag">{produto.tipo_produto}</span>
                       </div>
                       
-                      <div className="table-col type" data-label="Tipo Venda">
-                        <span className="type-badge">{produto.tipo_comercializacao}</span>
+                      <div className="table-col type" data-label="Tipo Venda / Empresa">
+                        <div className="type-badge-container">
+                          <span className="type-badge">{produto.tipo_comercializacao}</span>
+                          {produto.empresa_nome && (
+                            <span className="empresa-badge" title={`Vendido por: ${produto.empresa_nome}`}>
+                              🏢 {produto.empresa_nome}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="table-col actions" data-label="Ações">
@@ -482,7 +482,7 @@ function ProductListAdmin() {
         <div className="modal-overlay">
           <div className="modal-content filter-modal">
             <div className="modal-header">
-              <h2>Filtrar Produtos</h2>
+              <h2>Filtrar Projetos</h2>
               <button className="modal-close" onClick={() => setShowFilterModal(false)}>
                 <FaTimes />
               </button>
@@ -531,6 +531,7 @@ function ProductListAdmin() {
                   <option value="Venda">Venda</option>
                   <option value="Aluguel">Aluguel</option>
                   <option value="Serviço">Serviço</option>
+                  <option value="Dropshipping">Dropshipping</option>
                 </select>
               </div>
 

@@ -1,15 +1,11 @@
 import React, {useState, useEffect} from "react";
 import "./styles.css";
-import ReactSimplyCarousel from 'react-simply-carousel';
-import casa1 from "../../assets/casa-1.png"
-import casa2 from "../../assets/casa-2.png"
-import casa3 from "../../assets/casa-3.png"
-import { FaCar, FaBath, FaBed  } from "react-icons/fa";
 import axios from "axios";
-import { Link } from "react-router-dom";
 
 function Companies() {
+  // eslint-disable-next-line no-unused-vars
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  // eslint-disable-next-line no-unused-vars
   const [imoveis, setImoveis] = useState([]);
  
   const fetchImoveis = async () => {

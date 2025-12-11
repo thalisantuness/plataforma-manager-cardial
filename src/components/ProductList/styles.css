@@ -1,5 +1,5 @@
 /* ========================================
-   PÁGINA DE GERENCIAMENTO DE PRODUTOS - DESIGN MODERNO
+   PÁGINA DE GERENCIAMENTO DE PROJETOS - DESIGN MODERNO
    ======================================== */
 
 /* ==================== CONTAINER PRINCIPAL ==================== */
@@ -472,6 +472,13 @@
 }
 
 /* ==================== COLUNA TIPO VENDA ==================== */
+.type-badge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
 .type-badge {
   padding: 0.5rem 1rem;
   background: linear-gradient(135deg, #e9d8fd 0%, #d6bcfa 100%);
@@ -480,6 +487,29 @@
   font-size: 0.875rem;
   font-weight: 600;
   border: 1px solid #a78bfa;
+}
+
+.empresa-badge {
+  padding: 0.4rem 0.875rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #fbbf24;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empresa-badge:hover {
+  background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+  transform: scale(1.05);
+  transition: all 0.2s ease;
 }
 
 /* ==================== COLUNA AÇÕES ==================== */
@@ -523,7 +553,7 @@
   box-shadow: 0 4px 16px rgba(252, 129, 129, 0.3);
 }
 
-/* ==================== MENSAGEM SEM PRODUTOS ==================== */
+/* ==================== MENSAGEM SEM PROJETOS ==================== */
 .not-found-message {
   text-align: center;
   padding: 4rem 2rem;

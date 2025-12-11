@@ -15,7 +15,7 @@ function OurSolutions() {
           <div className="left-section">
             <h1>Aqui você pode!</h1> 
             <p>Oferecemos uma ampla e diversificada variedade de apartamentos, casas e salas comerciais disponíveis para venda e aluguel em Recife e toda a região.</p>
-            <img src={Couple} />
+            <img src={Couple} alt="Casal" />
            </div>
           
    
