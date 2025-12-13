@@ -31,7 +31,7 @@ function PDVVendas() {
 
         if (Array.isArray(response.data)) {
           const projetosData = response.data.map(projeto => ({
-            id: projeto.produto_id,
+            id: projeto.projeto_id || projeto.produto_id || projeto.id,
             nome: projeto.nome,
             valor: projeto.valor,
             valor_custo: projeto.valor_custo,
@@ -185,7 +185,7 @@ function PDVVendas() {
       
       if (Array.isArray(response.data)) {
         const projetosData = response.data.map(produto => ({
-          id: produto.produto_id,
+          id: produto.projeto_id || produto.produto_id || produto.id,
           nome: produto.nome,
           valor: produto.valor,
           valor_custo: produto.valor_custo,

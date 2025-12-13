@@ -40,6 +40,18 @@ function EditImovel() {
   // URL da API
   const API_URL = API_ENDPOINTS.PROJETOS;
 
+  // Debug: Verificar se o ID está sendo capturado
+  useEffect(() => {
+    console.log('ID capturado da URL:', id);
+    if (!id || id === 'undefined') {
+      console.error('❌ ID não encontrado na URL!');
+      toast.error('ID do projeto não encontrado na URL. Redirecionando...');
+      setTimeout(() => {
+        navigate('/projetos');
+      }, 2000);
+    }
+  }, [id, navigate]);
+
   // Carrega categorias únicas dos projetos existentes
   useEffect(() => {
     const loadCategories = async () => {
@@ -103,8 +115,22 @@ function EditImovel() {
   }, [id, isAuthenticated, navigate]);
 
   const fetchProductData = async () => {
+    // Validar se o ID existe antes de fazer a requisição
+    if (!id || id === 'undefined') {
+      console.error('❌ ID do projeto não encontrado!');
+      toast.error('ID do projeto não encontrado. Redirecionando...');
+      setTimeout(() => {
+        navigate('/projetos');
+      }, 2000);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      console.log('🔍 Buscando projeto com ID:', id);
+      console.log('🔍 URL completa:', `${API_URL}/${id}`);
+      
       const response = await axios.get(`${API_URL}/${id}`, {
         headers: getAuthHeaders()
       });
@@ -218,6 +244,13 @@ function EditImovel() {
       return;
     }
 
+    // Validar ID antes de atualizar
+    if (!id || id === 'undefined') {
+      console.error('❌ ID do projeto não encontrado!', id);
+      toast.error('ID do projeto não encontrado. Não é possível atualizar.');
+      return;
+    }
+
     setUpdating(true);
     
     try {
@@ -238,6 +271,8 @@ function EditImovel() {
         delete payload.foto_principal;
       }
 
+      console.log('💾 Atualizando projeto com ID:', id);
+      console.log('💾 URL completa:', `${API_URL}/${id}`);
       await axios.put(`${API_URL}/${id}`, payload, {
         headers: getAuthHeaders()
       });
@@ -265,7 +300,11 @@ function EditImovel() {
   };
 
   const addSecondaryPhoto = async () => {
-    if (!newPhoto || !id) return;
+    if (!newPhoto || !id || id === 'undefined') {
+      console.error('❌ ID do projeto não encontrado para adicionar foto!');
+      toast.error('ID do projeto não encontrado.');
+      return;
+    }
     
     setUploadingPhoto(true);
     try {
@@ -298,6 +337,12 @@ function EditImovel() {
   };
 
   const removeSecondaryPhoto = async (photoId) => {
+    if (!id || id === 'undefined') {
+      console.error('❌ ID do projeto não encontrado para remover foto!');
+      toast.error('ID do projeto não encontrado.');
+      return;
+    }
+    
     setDeletingPhoto(photoId);
     try {
       // Chamar a API para deletar a foto no backend

@@ -68,7 +68,13 @@ function OrdersPage() {
         
         // Buscar projeto completo na lista de projetos carregados para pegar valor_custo
         // O objeto Projeto do pedido não tem valor_custo, então precisamos buscar na lista
-        const projetoCompleto = projetosDisponiveis.find(p => p.produto_id === pedido.produto_id);
+        // O backend retorna projeto_id, mas o pedido pode ter produto_id (legado)
+        // Os projetos mapeados têm campo 'id' que é o projeto_id
+        const projetoCompleto = projetosDisponiveis.find(p => {
+          const projetoId = p.id || p.projeto_id || p.produto_id;
+          const pedidoProjetoId = pedido.produto_id || pedido.projeto_id;
+          return projetoId === pedidoProjetoId;
+        });
         
         // Usar projeto completo da lista se disponível, senão usar o do pedido
         // Mas sempre priorizar valor_custo da lista de projetos
@@ -82,10 +88,10 @@ function OrdersPage() {
         
         // Debug: logar se valor_custo estiver zerado e projeto não foi encontrado
         if (valorCusto === 0 && valorVenda > 0 && !projetoCompleto) {
-          console.warn(`⚠️ Projeto ID ${pedido.produto_id} não encontrado na lista de projetos. Lucro será igual ao faturamento.`, {
-            produto_id: pedido.produto_id,
+          console.warn(`⚠️ Projeto ID ${pedido.produto_id || pedido.projeto_id} não encontrado na lista de projetos. Lucro será igual ao faturamento.`, {
+            produto_id: pedido.produto_id || pedido.projeto_id,
             projetos_carregados: projetosDisponiveis.length,
-            projeto_ids_disponiveis: projetosDisponiveis.map(p => p.produto_id)
+            projeto_ids_disponiveis: projetosDisponiveis.map(p => p.id || p.projeto_id || p.produto_id)
           });
         }
         
@@ -131,7 +137,10 @@ function OrdersPage() {
       
       // Verificar se todos os projetos dos pedidos foram encontrados
       const projetosNaoEncontrados = pedidosMapeados.filter(p => {
-        const projetoCompleto = projetosDisponiveis.find(prod => prod.produto_id === p.produto_id);
+        const projetoCompleto = projetosDisponiveis.find(prod => 
+          prod.id === p.produto_id || 
+          (prod.projeto_id && prod.projeto_id === p.produto_id)
+        );
         return !projetoCompleto && p.produto_valor > 0;
       });
       
@@ -154,12 +163,19 @@ function OrdersPage() {
         headers: getAuthHeaders()
       });
       
+      // Mapear projetos para ter campo 'id' consistente (backend retorna projeto_id)
+      let projetosMapeados = response.data.map(projeto => ({
+        ...projeto,
+        id: projeto.projeto_id || projeto.produto_id || projeto.id,
+        produto_id: projeto.projeto_id || projeto.produto_id || projeto.id // Manter compatibilidade
+      }));
+      
       // Filtrar projetos baseado nas empresas autorizadas
-      let projetosFiltrados = response.data;
+      let projetosFiltrados = projetosMapeados;
       
       // Se o usuário for empresa, mostrar apenas projetos que ele pode usar
       if (usuarioLogado?.role === "empresa") {
-        projetosFiltrados = response.data.filter(projeto => {
+        projetosFiltrados = projetosMapeados.filter(projeto => {
           // Se empresas_autorizadas está vazio ou null, projeto disponível para todos
           if (!projeto.empresas_autorizadas || projeto.empresas_autorizadas.length === 0) {
             return true;
@@ -918,10 +934,11 @@ function OrdersPage() {
                           }
                         }
                         
+                        const projetoId = produto.id || produto.projeto_id || produto.produto_id;
                         return (
                           <option 
-                            key={produto.produto_id} 
-                            value={produto.produto_id}
+                            key={projetoId} 
+                            value={projetoId}
                             disabled={!disponivel}
                             style={{ color: disponivel ? 'inherit' : '#cbd5e0' }}
                           >

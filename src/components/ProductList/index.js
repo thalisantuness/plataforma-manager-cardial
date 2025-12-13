@@ -63,23 +63,32 @@ function ProductListAdmin() {
       });
 
       if (Array.isArray(response.data)) {
-        const projetosData = response.data.map(produto => ({
-          id: produto.produto_id,
-          nome: produto.nome,
-          valor: produto.valor,
-          valor_custo: produto.valor_custo,
-          quantidade: produto.quantidade,
-          tipo_comercializacao: produto.tipo_comercializacao,
-          tipo_produto: produto.tipo_produto,
-          foto_principal: produto.foto_principal,
-          imageData: produto.imageData,
-          photos: produto.photos || [],
-          data_cadastro: produto.data_cadastro,
-          data_update: produto.data_update,
-          empresa_id: produto.empresa_id,
-          empresa_nome: produto.Empresa?.nome || produto.empresa_nome || null,
-          empresa: produto.Empresa || null
-        }));
+        const projetosData = response.data.map(produto => {
+          // Validar e mapear o ID corretamente (backend retorna projeto_id)
+          const projetoId = produto.projeto_id || produto.produto_id || produto.id || null;
+          
+          if (!projetoId) {
+            console.warn('⚠️ Projeto sem ID encontrado:', produto);
+          }
+          
+          return {
+            id: projetoId,
+            nome: produto.nome,
+            valor: produto.valor,
+            valor_custo: produto.valor_custo,
+            quantidade: produto.quantidade,
+            tipo_comercializacao: produto.tipo_comercializacao,
+            tipo_produto: produto.tipo_produto,
+            foto_principal: produto.foto_principal,
+            imageData: produto.imageData,
+            photos: produto.photos || [],
+            data_cadastro: produto.data_cadastro,
+            data_update: produto.data_update,
+            empresa_id: produto.empresa_id,
+            empresa_nome: produto.Empresa?.nome || produto.empresa_nome || null,
+            empresa: produto.Empresa || null
+          };
+        }).filter(projeto => projeto.id !== null); // Filtrar projetos sem ID
 
         setProjetos(projetosData);
       } else {
@@ -209,6 +218,14 @@ function ProductListAdmin() {
 
   const handleEdit = async (id) => {
     try {
+      // Validar se o ID existe antes de navegar
+      if (!id || id === undefined || id === null) {
+        console.error('❌ ID do projeto não encontrado!', id);
+        toast.error('ID do projeto não encontrado. Não é possível editar.');
+        return;
+      }
+      
+      console.log('🔍 Navegando para editar projeto com ID:', id);
       // Navega para a página de edição passando o ID como parâmetro
       navigate(`/editar-produto/${id}`);
     } catch (error) {
@@ -458,7 +475,17 @@ function ProductListAdmin() {
                         <button 
                           className="action-btn edit-btn"
                           title="Editar projeto"
-                          onClick={() => handleEdit(projeto.id)}
+                          onClick={() => {
+                            console.log('🔍 Projeto clicado:', projeto);
+                            console.log('🔍 ID do projeto:', projeto.id);
+                            if (!projeto.id) {
+                              toast.error('ID do projeto não encontrado. Não é possível editar.');
+                              console.error('❌ Projeto sem ID:', projeto);
+                              return;
+                            }
+                            handleEdit(projeto.id);
+                          }}
+                          disabled={!projeto.id}
                         >
                           Editar
                         </button>
@@ -466,6 +493,7 @@ function ProductListAdmin() {
                           onClick={() => handleDeleteClick(projeto)}
                           className="action-btn delete-btn"
                           title="Excluir projeto"
+                          disabled={!projeto.id}
                         >
                           Excluir
                         </button>
