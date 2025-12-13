@@ -183,7 +183,7 @@ function FormRegister({ productId }) {
       // Seleciona automaticamente a nova categoria
       setFormData({ ...formData, tipo_produto: newCategory.nome });
       
-      toast.success('Categoria adicionada! Ela será salva quando você criar o produto.');
+      toast.success('Categoria adicionada! Ela será salva quando você criar o projeto.');
     }
     
     // Fecha o modal e limpa o campo
@@ -248,16 +248,16 @@ function FormRegister({ productId }) {
       }
 
       if (isEditing && produtoId) {
-        // Edição de produto existente
+        // Edição de projeto existente
         await axios.put(`${API_URL}/${produtoId}`, payload, {
           headers: getAuthHeaders()
         });
-        toast.success('Produto atualizado com sucesso!', {
+        toast.success('Projeto atualizado com sucesso!', {
           position: 'top-right',
           autoClose: 3000,
         });
       } else {
-        // Cadastro de novo produto
+        // Cadastro de novo projeto
         await axios.post(API_URL, payload, {
           headers: getAuthHeaders()
         });
@@ -268,12 +268,12 @@ function FormRegister({ productId }) {
         setPendingPhotos([]);
         
         if (tinhaFotosSecundarias) {
-          toast.success('Produto cadastrado com sucesso! Fotos secundárias adicionadas.', {
+          toast.success('Projeto cadastrado com sucesso! Fotos secundárias adicionadas.', {
             position: 'top-right',
             autoClose: 3000,
           });
         } else {
-          toast.success('Produto cadastrado com sucesso!', {
+          toast.success('Projeto cadastrado com sucesso!', {
             position: 'top-right',
             autoClose: 3000,
           });
@@ -286,9 +286,9 @@ function FormRegister({ productId }) {
       }
       
     } catch (error) {
-      console.error('Erro ao salvar produto:', error);
+      console.error('Erro ao salvar projeto:', error);
       const errorMessage = error.response?.data?.message || 
-        (isEditing ? 'Erro ao atualizar produto!' : 'Erro ao cadastrar produto!');
+        (isEditing ? 'Erro ao atualizar projeto!' : 'Erro ao cadastrar projeto!');
       toast.error(errorMessage, {
         position: 'top-right',
         autoClose: 3000,
@@ -393,20 +393,20 @@ function FormRegister({ productId }) {
         <button onClick={handleBack} className="back-button">
           <FaArrowLeft /> Voltar
         </button>
-        <h2>{isEditing ? 'Editar Produto' : 'Cadastrar Novo Produto'}</h2>
+        <h2>{isEditing ? 'Editar Projeto' : 'Cadastrar Novo Projeto'}</h2>
       </div>
       
       <form className="form-register" onSubmit={handleSubmit}>
         {/* Seção de informações básicas */}
         <div className="form-section">
-          <h3>Informações do Produto</h3>
+          <h3>Informações do Projeto</h3>
           <div className="form-grid">
             <div className="form-group">
-              <label>Nome do Produto *</label>
+              <label>Nome do Projeto *</label>
               <input
                 type="text"
                 name="nome"
-                placeholder="Ex: Smartphone Samsung Galaxy"
+                placeholder="Ex: Projeto Exemplo"
                 value={formData.nome}
                 onChange={handleChange}
                 required
@@ -555,7 +555,7 @@ function FormRegister({ productId }) {
                 <FaSpinner className="spinner" /> {isEditing ? 'Atualizando...' : 'Cadastrando...'}
               </>
             ) : (
-              isEditing ? 'Atualizar Produto' : 'Cadastrar Produto'
+              isEditing ? 'Atualizar Projeto' : 'Cadastrar Projeto'
             )}
           </button>
         </div>
@@ -564,14 +564,14 @@ function FormRegister({ productId }) {
       {/* Seção de fotos secundárias (sempre disponível) */}
       <div className="secondary-photos-section">
           <div className="section-header">
-            <h3>Fotos Secundárias do Produto</h3>
-            <p>Adicione fotos adicionais para mostrar diferentes ângulos do produto</p>
+            <h3>Fotos Secundárias do Projeto</h3>
+            <p>Adicione fotos adicionais para mostrar diferentes ângulos do projeto</p>
           </div>
           
             {/* Lista de fotos secundárias */}
             {(photos.length > 0 || pendingPhotos.length > 0) ? (
               <div className="photos-grid">
-                {/* Mostra fotos pendentes (antes de criar produto) */}
+                {/* Mostra fotos pendentes (antes de criar projeto) */}
                 {pendingPhotos.map((photo, index) => (
                   <div key={`pending-${index}`} className="photo-item">
                     <img src={photo} alt={`Foto pendente ${index + 1}`} />

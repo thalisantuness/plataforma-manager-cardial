@@ -90,7 +90,7 @@ function EditImovel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Carrega dados do produto
+  // Carrega dados do projeto
   useEffect(() => {
     if (!isAuthenticated()) {
       toast.error('Usuário não autenticado!');
@@ -111,7 +111,7 @@ function EditImovel() {
 
       const produto = response.data;
       
-      // Preenche os dados do produto
+      // Preenche os dados do projeto
       setFormData({
         nome: produto.nome || '',
         valor: produto.valor || '',
@@ -131,8 +131,8 @@ function EditImovel() {
       }
       
     } catch (error) {
-      console.error('Erro ao carregar dados do produto:', error);
-      toast.error('Erro ao carregar dados do produto!', {
+      console.error('Erro ao carregar dados do projeto:', error);
+      toast.error('Erro ao carregar dados do projeto!', {
         position: 'top-right',
         autoClose: 3000,
       });
@@ -174,7 +174,7 @@ function EditImovel() {
       // Seleciona automaticamente a nova categoria
       setFormData({ ...formData, tipo_produto: newCategory.nome });
       
-      toast.success('Categoria adicionada! Ela será salva quando você atualizar o produto.');
+      toast.success('Categoria adicionada! Ela será salva quando você atualizar o projeto.');
     }
     
     // Fecha o modal e limpa o campo
@@ -242,7 +242,7 @@ function EditImovel() {
         headers: getAuthHeaders()
       });
 
-      toast.success('Produto atualizado com sucesso!', {
+      toast.success('Projeto atualizado com sucesso!', {
         position: 'top-right',
         autoClose: 3000,
       });
@@ -253,8 +253,8 @@ function EditImovel() {
       }, 1000); // Aguarda 1 segundo para o usuário ver a mensagem de sucesso
       
     } catch (error) {
-      console.error('Erro ao atualizar produto:', error);
-      const errorMessage = error.response?.data?.message || 'Erro ao atualizar produto!';
+      console.error('Erro ao atualizar projeto:', error);
+      const errorMessage = error.response?.data?.message || 'Erro ao atualizar projeto!';
       toast.error(errorMessage, {
         position: 'top-right',
         autoClose: 3000,
@@ -334,7 +334,7 @@ function EditImovel() {
         <SideBar />
         <div className="main-content">
           <div className="loading-container">
-            <FaSpinner className="spinner" /> Carregando dados do produto...
+            <FaSpinner className="spinner" /> Carregando dados do projeto...
           </div>
         </div>
       </div>
@@ -518,7 +518,7 @@ function EditImovel() {
                   </>
                 ) : (
                   <>
-                    <FaSave /> Atualizar Produto
+                    <FaSave /> Atualizar Projeto
                   </>
                 )}
               </button>
@@ -528,8 +528,8 @@ function EditImovel() {
           {/* Seção de fotos secundárias */}
           <div className="secondary-photos-section">
             <div className="section-header">
-              <h3>Fotos Secundárias do Produto</h3>
-              <p>Adicione fotos adicionais para mostrar diferentes ângulos do produto</p>
+              <h3>Fotos Secundárias do Projeto</h3>
+              <p>Adicione fotos adicionais para mostrar diferentes ângulos do projeto</p>
             </div>
             
             {/* Lista de fotos secundárias */}
