@@ -353,20 +353,20 @@ function EditImovel() {
             <button onClick={handleBack} className="back-button">
               <FaArrowLeft /> Voltar
             </button>
-            <h2>Editar Produto ID: {id}</h2>
+            <h2>Editar Projeto ID: {id}</h2>
           </div>
           
           <form className="form-register" onSubmit={handleSubmit}>
             {/* Seção de informações básicas */}
             <div className="form-section">
-              <h3>Informações do Produto</h3>
+              <h3>Informações do Projeto</h3>
               <div className="form-grid">
                 <div className="form-group">
-                  <label>Nome do Produto *</label>
+                  <label>Nome do Projeto *</label>
                   <input
                     type="text"
                     name="nome"
-                    placeholder="Ex: Smartphone Samsung Galaxy"
+                    placeholder="Ex: Projeto Exemplo"
                     value={formData.nome}
                     onChange={handleChange}
                     required
@@ -537,7 +537,7 @@ function EditImovel() {
               <div className="photos-grid">
                 {photos.map((photo) => (
                   <div key={photo.photo_id} className="photo-item">
-                    <img src={photo.imageData} alt={`Produto ${photo.photo_id}`} />
+                    <img src={photo.imageData} alt={`Projeto ${photo.photo_id}`} />
                     <button
                       onClick={() => removeSecondaryPhoto(photo.photo_id)}
                       disabled={deletingPhoto === photo.photo_id}
