@@ -13,7 +13,7 @@ function ProductListAdmin() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPhotoDeleteModal, setShowPhotoDeleteModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [produtoToDelete, setProdutoToDelete] = useState(null);
+  const [projetoToDelete, setProjetoToDelete] = useState(null);
   const [photoToDelete, setPhotoToDelete] = useState(null);
   const [filtros, setFiltros] = useState({
     nome: "",
@@ -115,28 +115,28 @@ function ProductListAdmin() {
     }
   };
 
-  const handleDeleteClick = (produto) => {
-    setProdutoToDelete(produto);
+  const handleDeleteClick = (projeto) => {
+    setProjetoToDelete(projeto);
     setShowDeleteModal(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!produtoToDelete) return;
+    if (!projetoToDelete) return;
 
     try {
-      await axios.delete(`${API_URL}/${produtoToDelete.id}`, {
+      await axios.delete(`${API_URL}/${projetoToDelete.id}`, {
         headers: getAuthHeaders()
       });
       
-      setProjetos(projetos.filter(produto => produto.id !== produtoToDelete.id));
-      toast.success("Produto excluído com sucesso!", {
+      setProjetos(projetos.filter(projeto => projeto.id !== projetoToDelete.id));
+      toast.success("Projeto excluído com sucesso!", {
         position: "top-right",
         autoClose: 3000,
       });
     } catch (error) {
-      console.error("Erro ao excluir produto:", error);
+      console.error("Erro ao excluir projeto:", error);
       
-      const errorMessage = error.response?.data?.message || "Erro ao excluir produto. Tente novamente!";
+      const errorMessage = error.response?.data?.message || "Erro ao excluir projeto. Tente novamente!";
       
       if (error.response?.status === 401) {
         toast.error("Sessão expirada! Faça login novamente.");
@@ -149,18 +149,18 @@ function ProductListAdmin() {
       }
     } finally {
       setShowDeleteModal(false);
-      setProdutoToDelete(null);
+      setProjetoToDelete(null);
     }
   };
 
   const handleDeleteCancel = () => {
     setShowDeleteModal(false);
-    setProdutoToDelete(null);
+    setProjetoToDelete(null);
   };
 
   // Funções para exclusão de fotos
-  const handlePhotoDeleteClick = (produto, photo) => {
-    setPhotoToDelete({ produto, photo });
+  const handlePhotoDeleteClick = (projeto, photo) => {
+    setPhotoToDelete({ projeto, photo });
     setShowPhotoDeleteModal(true);
   };
 
@@ -169,19 +169,19 @@ function ProductListAdmin() {
 
     try {
       // Chamada para deletar a foto
-      await axios.delete(`${API_URL}/${photoToDelete.produto.id}/fotos/${photoToDelete.photo.photo_id}`, {
+      await axios.delete(`${API_URL}/${photoToDelete.projeto.id}/fotos/${photoToDelete.photo.photo_id}`, {
         headers: getAuthHeaders()
       });
       
       // Atualiza a lista de projetos removendo a foto
-      setProjetos(projetos.map(produto => {
-        if (produto.id === photoToDelete.produto.id) {
+      setProjetos(projetos.map(projeto => {
+        if (projeto.id === photoToDelete.projeto.id) {
           return {
-            ...produto,
-            photos: produto.photos.filter(p => p.photo_id !== photoToDelete.photo.photo_id)
+            ...projeto,
+            photos: projeto.photos.filter(p => p.photo_id !== photoToDelete.photo.photo_id)
           };
         }
-        return produto;
+        return projeto;
       }));
 
       toast.success("Foto excluída com sucesso!", {
@@ -212,13 +212,13 @@ function ProductListAdmin() {
       // Navega para a página de edição passando o ID como parâmetro
       navigate(`/editar-produto/${id}`);
     } catch (error) {
-      console.error("Erro ao carregar dados do produto:", error);
-      toast.error("Erro ao carregar dados do produto para edição");
+      console.error("Erro ao carregar dados do projeto:", error);
+      toast.error("Erro ao carregar dados do projeto para edição");
     }
   };
 
   const handleAddProduct = () => {
-    // Navega para a página de cadastro sem ID (novo produto)
+    // Navega para a página de cadastro sem ID (novo projeto)
     navigate("/add-product");
   };
 
@@ -266,7 +266,7 @@ function ProductListAdmin() {
 
   // Calcular estatísticas
   const totalProjetos = projetos.length;
-  const totalEstoque = projetos.reduce((total, produto) => total + (produto.quantidade || 0), 0);
+  const totalEstoque = projetos.reduce((total, projeto) => total + (projeto.quantidade || 0), 0);
   const categoriasUnicas = [...new Set(projetos.map(p => p.tipo_produto))].length;
 
   // Loading do contexto
@@ -325,7 +325,7 @@ function ProductListAdmin() {
                 onClick={handleAddProduct}
                 className="add-product-btn"
               >
-                <FaPlus /> Adicionar Produto
+                <FaPlus /> Adicionar Projeto
               </button>
             </div>
           </div>
@@ -368,14 +368,14 @@ function ProductListAdmin() {
             {projetos.length === 0 ? (
               <div className="not-found-message">
                 <FaBox className="not-found-icon" />
-                <h3>Nenhum produto encontrado</h3>
-                <p>Clique em "Adicionar Produto" para cadastrar o primeiro produto</p>
+                <h3>Nenhum projeto encontrado</h3>
+                <p>Clique em "Adicionar Projeto" para cadastrar o primeiro projeto</p>
               </div>
             ) : (
               <div className="products-table">
                 <div className="table-header">
                   <div className="table-col photo">Foto</div>
-                  <div className="table-col name">Produto</div>
+                  <div className="table-col name">Projeto</div>
                   <div className="table-col price">Preço</div>
                   <div className="table-col cost">Custo</div>
                   <div className="table-col stock">Estoque</div>
@@ -385,21 +385,21 @@ function ProductListAdmin() {
                 </div>
 
                 <div className="table-body">
-                  {projetos.map((produto) => (
-                    <div key={produto.id} className="table-row">
+                  {projetos.map((projeto) => (
+                    <div key={projeto.id} className="table-row">
                       <div className="table-col photo" data-label="Foto">
                         <img 
-                          src={produto.imageData || produto.foto_principal} 
-                          alt={produto.nome}
+                          src={projeto.imageData || projeto.foto_principal} 
+                          alt={projeto.nome}
                           className="product-photo"
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/50x50?text=Produto';
+                            e.target.src = 'https://via.placeholder.com/50x50?text=Projeto';
                           }}
                         />
                         {/* Mostrar miniaturas das fotos secundárias */}
-                        {produto.photos && produto.photos.length > 0 && (
+                        {projeto.photos && projeto.photos.length > 0 && (
                           <div className="secondary-photos-mini">
-                            {produto.photos.slice(0, 3).map((photo, index) => (
+                            {projeto.photos.slice(0, 3).map((photo, index) => (
                               <div key={photo.photo_id} className="photo-mini-item">
                                 <img 
                                   src={photo.imageData} 
@@ -407,7 +407,7 @@ function ProductListAdmin() {
                                   className="photo-mini"
                                 />
                                 <button
-                                  onClick={() => handlePhotoDeleteClick(produto, photo)}
+                                  onClick={() => handlePhotoDeleteClick(projeto, photo)}
                                   className="photo-delete-mini"
                                   title="Excluir foto"
                                 >
@@ -415,40 +415,40 @@ function ProductListAdmin() {
                                 </button>
                               </div>
                             ))}
-                            {produto.photos.length > 3 && (
-                              <div className="photo-more">+{produto.photos.length - 3}</div>
+                            {projeto.photos.length > 3 && (
+                              <div className="photo-more">+{projeto.photos.length - 3}</div>
                             )}
                           </div>
                         )}
                       </div>
                       
-                      <div className="table-col name" data-label="Produto">
-                        <div className="product-name">{produto.nome}</div>
-                        <div className="product-id">ID: {produto.id}</div>
+                      <div className="table-col name" data-label="Projeto">
+                        <div className="product-name">{projeto.nome}</div>
+                        <div className="product-id">ID: {projeto.id}</div>
                       </div>
                       
                       <div className="table-col price" data-label="Preço">
-                        <span className="price-value">{formatCurrency(produto.valor)}</span>
+                        <span className="price-value">{formatCurrency(projeto.valor)}</span>
                       </div>
                       
                       <div className="table-col cost" data-label="Custo">
-                        <span className="cost-value">{formatCurrency(produto.valor_custo)}</span>
+                        <span className="cost-value">{formatCurrency(projeto.valor_custo)}</span>
                       </div>
                       
                       <div className="table-col stock" data-label="Estoque">
-                        <div className="stock-quantity">{produto.quantidade} unidades</div>
+                        <div className="stock-quantity">{projeto.quantidade} unidades</div>
                       </div>
                       
                       <div className="table-col category" data-label="Categoria">
-                        <span className="category-tag">{produto.tipo_produto}</span>
+                        <span className="category-tag">{projeto.tipo_produto}</span>
                       </div>
                       
                       <div className="table-col type" data-label="Tipo Venda / Empresa">
                         <div className="type-badge-container">
-                          <span className="type-badge">{produto.tipo_comercializacao}</span>
-                          {produto.empresa_nome && (
-                            <span className="empresa-badge" title={`Vendido por: ${produto.empresa_nome}`}>
-                              🏢 {produto.empresa_nome}
+                          <span className="type-badge">{projeto.tipo_comercializacao}</span>
+                          {projeto.empresa_nome && (
+                            <span className="empresa-badge" title={`Vendido por: ${projeto.empresa_nome}`}>
+                              🏢 {projeto.empresa_nome}
                             </span>
                           )}
                         </div>
@@ -457,15 +457,15 @@ function ProductListAdmin() {
                       <div className="table-col actions" data-label="Ações">
                         <button 
                           className="action-btn edit-btn"
-                          title="Editar produto"
-                          onClick={() => handleEdit(produto.id)}
+                          title="Editar projeto"
+                          onClick={() => handleEdit(projeto.id)}
                         >
                           Editar
                         </button>
                         <button 
-                          onClick={() => handleDeleteClick(produto)}
+                          onClick={() => handleDeleteClick(projeto)}
                           className="action-btn delete-btn"
-                          title="Excluir produto"
+                          title="Excluir projeto"
                         >
                           Excluir
                         </button>
@@ -490,14 +490,14 @@ function ProductListAdmin() {
             
             <div className="modal-form">
               <div className="form-group">
-                <label htmlFor="nome">Nome do Produto</label>
+                <label htmlFor="nome">Nome do Projeto</label>
                 <input
                   type="text"
                   id="nome"
                   name="nome"
                   value={filtros.nome}
                   onChange={handleFilterChange}
-                  placeholder="Digite o nome do produto"
+                  placeholder="Digite o nome do projeto"
                 />
               </div>
 
@@ -584,8 +584,8 @@ function ProductListAdmin() {
         </div>
       )}
 
-      {/* Modal de Confirmação de Exclusão de Produto */}
-      {showDeleteModal && produtoToDelete && (
+      {/* Modal de Confirmação de Exclusão de Projeto */}
+      {showDeleteModal && projetoToDelete && (
         <div className="modal-overlay">
           <div className="modal-content delete-confirmation-modal">
             <div className="modal-header">
@@ -598,30 +598,30 @@ function ProductListAdmin() {
             <div className="modal-body">
               <div className="delete-warning">
                 <FaExclamationTriangle className="warning-icon" />
-                <h3>Tem certeza que deseja excluir este produto?</h3>
+                <h3>Tem certeza que deseja excluir este projeto?</h3>
               </div>
               
               <div className="product-to-delete">
                 <div className="product-photo-container">
                   <img 
-                    src={produtoToDelete.imageData || produtoToDelete.foto_principal} 
-                    alt={produtoToDelete.nome}
+                    src={projetoToDelete.imageData || projetoToDelete.foto_principal} 
+                    alt={projetoToDelete.nome}
                     className="product-photo-large"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/80x80?text=Produto';
+                      e.target.src = 'https://via.placeholder.com/80x80?text=Projeto';
                     }}
                   />
                 </div>
                 <div className="product-details">
-                  <div className="product-name">{produtoToDelete.nome}</div>
-                  <div className="product-id">ID: {produtoToDelete.id}</div>
-                  <div className="product-price">{formatCurrency(produtoToDelete.valor)}</div>
-                  <div className="product-category">{produtoToDelete.tipo_produto}</div>
+                  <div className="product-name">{projetoToDelete.nome}</div>
+                  <div className="product-id">ID: {projetoToDelete.id}</div>
+                  <div className="product-price">{formatCurrency(projetoToDelete.valor)}</div>
+                  <div className="product-category">{projetoToDelete.tipo_produto}</div>
                 </div>
               </div>
               
               <div className="delete-warning-text">
-                <p>Esta ação não pode ser desfeita. O produto será permanentemente removido do sistema.</p>
+                <p>Esta ação não pode ser desfeita. O projeto será permanentemente removido do sistema.</p>
               </div>
             </div>
 
@@ -639,7 +639,7 @@ function ProductListAdmin() {
                 onClick={handleDeleteConfirm}
               >
                 <FaTrash />
-                Excluir Produto
+                Excluir Projeto
               </button>
             </div>
           </div>
@@ -667,7 +667,7 @@ function ProductListAdmin() {
                 <div className="product-photo-container">
                   <img 
                     src={photoToDelete.photo.imageData} 
-                    alt="Foto do produto"
+                    alt="Foto do projeto"
                     className="product-photo-large"
                     onError={(e) => {
                       e.target.src = 'https://via.placeholder.com/80x80?text=Foto';
@@ -675,14 +675,14 @@ function ProductListAdmin() {
                   />
                 </div>
                 <div className="product-details">
-                  <div className="product-name">{photoToDelete.produto.nome}</div>
-                  <div className="product-id">ID do Produto: {photoToDelete.produto.id}</div>
+                  <div className="product-name">{photoToDelete.projeto.nome}</div>
+                  <div className="product-id">ID do Projeto: {photoToDelete.projeto.id}</div>
                   <div className="product-id">ID da Foto: {photoToDelete.photo.photo_id}</div>
                 </div>
               </div>
               
               <div className="delete-warning-text">
-                <p>Esta ação não pode ser desfeita. A foto será permanentemente removida do produto.</p>
+                <p>Esta ação não pode ser desfeita. A foto será permanentemente removida do projeto.</p>
               </div>
             </div>
 

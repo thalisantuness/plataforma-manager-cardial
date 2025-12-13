@@ -30,22 +30,22 @@ function PDVVendas() {
         });
 
         if (Array.isArray(response.data)) {
-          const projetosData = response.data.map(produto => ({
-            id: produto.produto_id,
-            nome: produto.nome,
-            valor: produto.valor,
-            valor_custo: produto.valor_custo,
-            quantidade: produto.quantidade,
-            tipo_comercializacao: produto.tipo_comercializacao,
-            tipo_produto: produto.tipo_produto,
-            foto_principal: produto.foto_principal,
-            imageData: produto.imageData,
-            photos: produto.photos || [],
-            data_cadastro: produto.data_cadastro,
-            data_update: produto.data_update,
-            empresa_id: produto.empresa_id,
-            empresa_nome: produto.Empresa?.nome || produto.empresa_nome || null,
-            empresa: produto.Empresa || null
+          const projetosData = response.data.map(projeto => ({
+            id: projeto.produto_id,
+            nome: projeto.nome,
+            valor: projeto.valor,
+            valor_custo: projeto.valor_custo,
+            quantidade: projeto.quantidade,
+            tipo_comercializacao: projeto.tipo_comercializacao,
+            tipo_produto: projeto.tipo_produto,
+            foto_principal: projeto.foto_principal,
+            imageData: projeto.imageData,
+            photos: projeto.photos || [],
+            data_cadastro: projeto.data_cadastro,
+            data_update: projeto.data_update,
+            empresa_id: projeto.empresa_id,
+            empresa_nome: projeto.Empresa?.nome || projeto.empresa_nome || null,
+            empresa: projeto.Empresa || null
           }));
 
           setProjetos(projetosData);
@@ -65,65 +65,65 @@ function PDVVendas() {
 
   useEffect(() => {
     // Filtrar projetos baseado no termo de pesquisa (nome ou código)
-    const filtered = projetos.filter(produto =>
-      produto.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      produto.id.toString().includes(searchTerm)
+    const filtered = projetos.filter(projeto =>
+      projeto.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      projeto.id.toString().includes(searchTerm)
     );
     setFilteredProducts(filtered);
   }, [searchTerm, projetos]);
 
-  const adicionarAoCarrinho = (produto) => {
+  const adicionarAoCarrinho = (projeto) => {
     // Verificar se há estoque disponível
-    if (produto.quantidade <= 0) {
-      toast.error("Produto sem estoque disponível!");
+    if (projeto.quantidade <= 0) {
+      toast.error("Projeto sem estoque disponível!");
       return;
     }
 
     setCarrinho(prev => {
-      const existingItem = prev.find(item => item.id === produto.id);
+      const existingItem = prev.find(item => item.id === projeto.id);
       
       if (existingItem) {
         // Verificar se a quantidade no carrinho não excede o estoque
-        if (existingItem.quantidadeCarrinho + 1 > produto.quantidade) {
+        if (existingItem.quantidadeCarrinho + 1 > projeto.quantidade) {
           toast.error("Quantidade solicitada excede o estoque disponível!");
           return prev;
         }
         
         return prev.map(item =>
-          item.id === produto.id
+          item.id === projeto.id
             ? { ...item, quantidadeCarrinho: item.quantidadeCarrinho + 1 }
             : item
         );
       } else {
         return [...prev, { 
-          ...produto, 
+          ...projeto, 
           quantidadeCarrinho: 1,
-          valor: produto.valor // Garantir que o preço de venda seja usado
+          valor: projeto.valor // Garantir que o preço de venda seja usado
         }];
       }
     });
-    toast.success("Produto adicionado ao carrinho!", {
+    toast.success("Projeto adicionado ao carrinho!", {
       position: "top-right",
       autoClose: 2000,
     });
   };
 
-  const removerDoCarrinho = (produtoId) => {
-    setCarrinho(prev => prev.filter(item => item.id !== produtoId));
-    toast.info("Produto removido do carrinho!", {
+  const removerDoCarrinho = (projetoId) => {
+    setCarrinho(prev => prev.filter(item => item.id !== projetoId));
+    toast.info("Projeto removido do carrinho!", {
       position: "top-right",
       autoClose: 2000,
     });
   };
 
-  const ajustarQuantidade = (produtoId, novaQuantidade) => {
+  const ajustarQuantidade = (projetoId, novaQuantidade) => {
     if (novaQuantidade < 1) {
-      removerDoCarrinho(produtoId);
+      removerDoCarrinho(projetoId);
       return;
     }
 
-    // Encontrar o produto para verificar o estoque
-    const projetoOriginal = projetos.find(p => p.id === produtoId);
+    // Encontrar o projeto para verificar o estoque
+    const projetoOriginal = projetos.find(p => p.id === projetoId);
 
     if (projetoOriginal && novaQuantidade > projetoOriginal.quantidade) {
       toast.error("Quantidade solicitada excede o estoque disponível!");
@@ -132,7 +132,7 @@ function PDVVendas() {
 
     setCarrinho(prev =>
       prev.map(item =>
-        item.id === produtoId
+        item.id === projetoId
           ? { ...item, quantidadeCarrinho: novaQuantidade }
           : item
       )
@@ -266,30 +266,30 @@ function PDVVendas() {
 
               <div className="produtos-lista">
                 <h3>Projetos Encontrados ({filteredProducts.length})</h3>
-                {filteredProducts.length === 0 ? (
+                  {filteredProducts.length === 0 ? (
                   <div className="no-products">
-                    <p>Nenhum produto encontrado</p>
+                    <p>Nenhum projeto encontrado</p>
                   </div>
                 ) : (
                   <div className="products-mini-list">
-                    {filteredProducts.map((produto) => {
-                      const stockStatus = getStockStatus(produto.quantidade);
+                    {filteredProducts.map((projeto) => {
+                      const stockStatus = getStockStatus(projeto.quantidade);
                       return (
-                        <div key={produto.id} className="product-mini-item">
+                        <div key={projeto.id} className="product-mini-item">
                           <div className="product-mini-info">
-                            <div className="product-mini-name">{produto.nome}</div>
-                            <div className="product-mini-code">Cód: {produto.id}</div>
-                            <div className="product-mini-price">{formatCurrency(produto.valor)}</div>
+                            <div className="product-mini-name">{projeto.nome}</div>
+                            <div className="product-mini-code">Cód: {projeto.id}</div>
+                            <div className="product-mini-price">{formatCurrency(projeto.valor)}</div>
                             <div className={`stock-mini ${stockStatus.class}`}>
-                              {produto.quantidade} unidades
+                              {projeto.quantidade} unidades
                             </div>
                           </div>
                           <div className="product-mini-actions">
                             <button 
-                              onClick={() => adicionarAoCarrinho(produto)}
+                              onClick={() => adicionarAoCarrinho(projeto)}
                               className="add-btn"
                               title="Adicionar ao carrinho"
-                              disabled={produto.quantidade <= 0}
+                              disabled={projeto.quantidade <= 0}
                             >
                               <FaPlus />
                             </button>
@@ -305,14 +305,14 @@ function PDVVendas() {
               <div className="produtos-completa">
                 <h3>Todos os Projetos ({projetos.length})</h3>
                 <div className="produtos-grid">
-                  {projetos.map((produto) => {
-                    const stockStatus = getStockStatus(produto.quantidade);
+                  {projetos.map((projeto) => {
+                    const stockStatus = getStockStatus(projeto.quantidade);
                     return (
-                      <div key={produto.id} className="produto-card">
+                      <div key={projeto.id} className="produto-card">
                         <div className="produto-image-container">
                           <img 
-                            src={produto.imageData || produto.foto_principal} 
-                            alt={produto.nome} 
+                            src={projeto.imageData || projeto.foto_principal} 
+                            alt={projeto.nome} 
                             className="produto-image"
                             onError={(e) => {
                               e.target.src = 'https://via.placeholder.com/300x200?text=Imagem+Indisponível';
@@ -321,50 +321,50 @@ function PDVVendas() {
                         </div>
                         
                         <div className="produto-details">
-                          <h4 className="produto-title">{produto.nome}</h4>
-                          <div className="produto-code">Código: {produto.id}</div>
+                          <h4 className="produto-title">{projeto.nome}</h4>
+                          <div className="produto-code">Código: {projeto.id}</div>
                           
                           <div className="produto-info">
                             <div className="info-item">
                               <span>Categoria:</span>
-                              <strong>{produto.tipo_produto}</strong>
+                              <strong>{projeto.tipo_produto}</strong>
                             </div>
                             <div className="info-item">
                               <span>Tipo:</span>
                               <strong>
-                                {produto.tipo_comercializacao === 'ecommerce' && produto.empresa_nome
-                                  ? produto.empresa_nome
-                                  : produto.tipo_comercializacao}
+                                {projeto.tipo_comercializacao === 'ecommerce' && projeto.empresa_nome
+                                  ? projeto.empresa_nome
+                                  : projeto.tipo_comercializacao}
                               </strong>
                             </div>
-                            {produto.empresa_nome && produto.tipo_comercializacao === 'ecommerce' && (
+                            {projeto.empresa_nome && projeto.tipo_comercializacao === 'ecommerce' && (
                               <div className="info-item empresa-info">
                                 <span>Vendido por:</span>
-                                <strong className="empresa-name">🏢 {produto.empresa_nome}</strong>
+                                <strong className="empresa-name">🏢 {projeto.empresa_nome}</strong>
                               </div>
                             )}
                             <div className="info-item">
                               <span>Estoque:</span>
                               <strong className={stockStatus.class}>
-                                {produto.quantidade} unidades
+                                {projeto.quantidade} unidades
                               </strong>
                             </div>
                             <div className="info-item">
                               <span>Custo:</span>
                               <strong className="cost-value">
-                                {formatCurrency(produto.valor_custo)}
+                                {formatCurrency(projeto.valor_custo)}
                               </strong>
                             </div>
                           </div>
                           
                           <div className="produto-preco-section">
                             <div className="produto-preco">
-                              <span className="preco-valor">{formatCurrency(produto.valor)}</span>
+                              <span className="preco-valor">{formatCurrency(projeto.valor)}</span>
                             </div>
                             <button 
-                              onClick={() => adicionarAoCarrinho(produto)}
+                              onClick={() => adicionarAoCarrinho(projeto)}
                               className="add-carrinho-btn"
-                              disabled={produto.quantidade <= 0}
+                              disabled={projeto.quantidade <= 0}
                             >
                               <FaPlus /> Adicionar
                             </button>

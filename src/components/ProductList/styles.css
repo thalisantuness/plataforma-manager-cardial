@@ -952,7 +952,7 @@
   }
   
   .table-col.photo::before { content: "Foto"; }
-  .table-col.name::before { content: "Produto"; }
+  .table-col.name::before { content: "Projeto"; }
   .table-col.price::before { content: "Preço"; }
   .table-col.cost::before { content: "Custo"; }
   .table-col.stock::before { content: "Estoque"; }
